@@ -74,3 +74,18 @@ py_binary(
         ":utils",
     ],
 )
+
+py_binary(
+    name = "train_wordcategory_map",
+    main = "train_wordcategory_map.py",
+    srcs = ["train_wordcategory_map.py"],
+    deps = [
+        requirement("somoclu"),
+        requirement("numpy"),
+        requirement("tqdm"),
+        requirement("pandas"),
+        requirement("nltk"),
+        "//app/similarbooks/main:constants",
+        ":utils",
+    ],
+)
