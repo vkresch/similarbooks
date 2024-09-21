@@ -1,0 +1,153 @@
+<!doctype html>
+<html lang="en">
+<head>
+    <!-- Include Leaflet CSS and JavaScript -->
+    <link rel="stylesheet" href="https://unpkg.com/leaflet@1.7.1/dist/leaflet.css" />
+    <script src="https://unpkg.com/leaflet@1.7.1/dist/leaflet.js"></script>
+    <link rel="stylesheet" href="https://unpkg.com/leaflet.markercluster@1.4.1/dist/MarkerCluster.css"/>
+    <link rel="stylesheet" href="https://unpkg.com/leaflet.markercluster@1.4.1/dist/MarkerCluster.Default.css"/>
+    <script src="https://unpkg.com/leaflet.markercluster@1.4.1/dist/leaflet.markercluster.js"></script>
+    <script src="https://unpkg.com/leaflet.markercluster@1.4.1/dist/MarkerCluster.js"></script>
+    <!-- Global site tag (gtag.js) - Google Analytics -->
+    <script async src="https://www.googletagmanager.com/gtag/js?id=G-41HY3JRKM1"></script>
+    <script>
+    window.dataLayer = window.dataLayer || [];
+    function gtag(){dataLayer.push(arguments);}
+    gtag('js', new Date());
+
+    gtag('config', 'G-41HY3JRKM1');
+    </script>
+
+    <!-- Required meta tags -->
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1, shrink-to-fit=no">
+    <meta name="description" content="{% if description %}{{ description }}{% else %}similarbooks ist eine Meta-Suchmaschine, die Investoren hilft, die besten Immobilienangebote zu finden und bietet einen umfassenden Marktüberblick. Analysieren und vergleichen Sie Immobilien, um fundierte Investitionsentscheidungen zu treffen oder das perfekte Mietobjekt zu finden. similarbooks helps investors find the best real estate deals and provides a comprehensive market overview. Easily analyze and compare properties to make informed investment decisions or find the perfect rental home.{% endif %}">
+    <meta property="og:title" content="{% if title %}similarbooks - {{ title }}{% else %}similarbooks{% endif %}">
+    <meta property="og:description" content="{% if description %}{{ description }}{% else %}similarbooks ist eine Meta-Suchmaschine, die Investoren hilft, die besten Immobilienangebote zu finden und bietet einen umfassenden Marktüberblick. Analysieren und vergleichen Sie Immobilien, um fundierte Investitionsentscheidungen zu treffen oder das perfekte Mietobjekt zu finden. similarbooks helps investors find the best real estate deals and provides a comprehensive market overview. Easily analyze and compare properties to make informed investment decisions or find the perfect rental home.{% endif %}">
+    <meta name="keywords" content="real estate analyzer, property aggregator, metacrawler, metasuchmaschine, real estate investment, property comparison, rental property, real estate market, investment analysis, property deals, real estate platform, Immobilienanalyse, Immobilienplattform, Immobilieninvestition, Immobilienvergleich, Mietobjekt, Immobilienmarkt, Investitionsanalyse, Immobilienangebote, Preisberechnung, Mietpreisberechnung">
+    {% if title %}
+        <title>Similar Books - {{ title }}</title>
+    {% else %}
+        <title>Similar Books</title>
+    {% endif %}
+
+    <!--Inter UI font-->
+    <link href="https://rsms.me/inter/inter-ui.css" rel="stylesheet">
+    <link rel="shortcut icon" href="{{ url_for('static', filename='favicon.ico') }}">
+    
+    <!--vendors styles-->
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/4.7.0/css/font-awesome.min.css">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/slick-carousel/1.8.1/slick.min.css">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/slick-carousel/1.8.1/slick-theme.min.css">
+
+    <!-- Bootstrap CSS / Color Scheme -->
+    <link rel="stylesheet" href="/static/css/default.css" id="theme-color">
+    <link rel="stylesheet" href="/static/css/gridjs.css" id="theme-color">
+    <script src="https://cdn.plot.ly/plotly-latest.min.js"></script>
+    <script src="https://code.jquery.com/jquery-3.6.0.min.js" crossorigin="anonymous"></script>
+    <style>
+        .bg-hero {
+            position: relative;
+            background-size: cover;
+            background-position: center;
+            background-repeat: no-repeat;
+        }
+    </style>
+</head>
+<body>
+
+<!--navigation-->
+<section class="smart-scroll">
+    <div class="container-fluid">
+        <nav class="navbar navbar-expand-md navbar-dark bg-dark">
+            <a class="navbar-brand heading-black" href="/">
+                Similar Books
+            </a>
+            <button class="navbar-toggler" type="button" data-toggle="collapse" data-target="#navbarCollapse" aria-controls="navbarCollapse" aria-expanded="false" aria-label="Toggle navigation">
+                <span class="navbar-toggler-icon"></span>
+            </button>
+            <div class="collapse navbar-collapse" id="navbarCollapse">
+                <ul class="navbar-nav ml-auto">
+                    <li class="nav-item">
+                        <a class="nav-link page-scroll" href="{{ url_for('main.about') }}"><i class='fa fa-info'></i></a>
+                    </li>
+                </ul>
+            </div>
+        </nav>
+    </div>
+</section>
+
+<main role="main" class="container">
+    <div class="col">
+        {% block content %}{% endblock %}
+        <br>
+        <div class="col-md-7 mx-auto">
+            {% with messages = get_flashed_messages(with_categories=true) %}
+                {% if messages %}
+                    {% for category, message in messages %}
+                        <div class="alert alert-{{ category }}">
+                            {{ message }}
+                        </div>
+                    {% endfor %}
+                {% endif %}
+            {% endwith %}
+        </div>
+    </div>
+</main>
+
+<!--footer-->
+<footer class="py-6">
+    <div class="container">
+        <div class="row">
+            <div class="col-sm-5 mr-auto">
+                <h5><a href="https://github.com/kretronik/similarbooks/issues" target="_blank" rel="nofollow noopener">Support</a></h5>
+                <p class="text-muted">
+                    Für Support, Fragen, Bugreports oder Featureanfragen bitte ein Issue auf <a href="https://github.com/kretronik/similarbooks/issues" target="_blank" rel="nofollow noopener">GitHub</a> öffnen.
+                </p>
+                <ul class="list-inline social social-sm">
+                    <li class="list-inline-item">
+                        <a href="https://kretronik.com" target="_blank" rel="nofollow noopener"><i class="fa fa-home"></i></a>
+                    </li>
+                    <li class="list-inline-item">
+                        <a href="https://www.kreschenski.com/" target="_blank" rel="nofollow noopener"><i class="fa fa-book"></i></a>
+                    </li>
+                    <li class="list-inline-item">
+                        <a href="https://www.github.com/kretronik/similarbooks/issues" target="_blank" rel="nofollow noopener"><i class="fa fa-github-alt"></i></a>
+                    </li>
+                    <li class="list-inline-item">
+                        <a href="https://www.linkedin.com/company/kretronik/" target="_blank" rel="nofollow noopener"><i class="fa fa-linkedin"></i></a>
+                    </li>
+                </ul>
+            </div>
+            <div class="col-sm-2">
+                <h5>Rechtliches</h5>
+                <ul class="list-unstyled">
+                    <li><a href="{{ url_for('main.legal') }}">Nutzungsbedingungen</a></li>
+                    <li><a href="{{ url_for('main.impressum') }}">Impressum</a></li>
+                    <li><a href="{{ url_for('main.datenschutz') }}">Datenschutz</a></li>
+                </ul>
+            </div>
+            <div class="col-12 text-muted text-center small-xl">
+                &copy; 2024 Kretronik GmbH - All Rights Reserved
+            </div>
+        </div>
+    </div>
+</footer>
+
+<!--scroll to top-->
+<div class="scroll-top">
+    <i class="fa fa-angle-up" aria-hidden="true"></i>
+</div>
+
+<!-- jQuery first, then Popper.js, then Bootstrap JS -->
+<script src="https://cdnjs.cloudflare.com/ajax/libs/popper.js/1.12.9/umd/popper.min.js"></script>
+<script src="https://maxcdn.bootstrapcdn.com/bootstrap/4.0.0/js/bootstrap.min.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/feather-icons/4.29.0/feather.min.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/slick-carousel/1.8.1/slick.min.js"></script>
+<script>
+    // Initialize feather icons
+    feather.replace();
+</script>
+<script src="/static/js/scripts.js"></script>
+</body>
+</html>

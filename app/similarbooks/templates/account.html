@@ -1,0 +1,267 @@
+{% extends "layout.html" %}
+{% block content %}
+    <div class="content-section">
+      <div class="media">
+        <div class="media-body">
+          <h5>Gespeicherte Filter (max. 3)</h5>            
+            <form method="POST" action="{{ url_for('users.account') }}">
+                <div class="form-group">
+                    <table id="filter-table" class="table table-striped table-hover">
+                        <thead>
+                            <tr>
+                                <th><input type="checkbox" id="select-all-filters"></th>
+                                <th>Timestamp</th>
+                                <th>Filter URL</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            {% for filter in filters %}
+                                <tr>
+                                    <td><input type="checkbox" name="urlCheckbox" value="{{ filter.filter_text }}" class="filter-checkbox"></td>
+                                    <td>{{ filter.timestamp }}</td>
+                                    <td><a href="{{ filter.filter_text }}" target="_blank">{{ filter.filter_text }}</a></td>
+                                </tr>
+                            {% endfor %}
+                        </tbody>
+                    </table>
+                </div>
+                <button class="btn {% if publish_email %}btn-info{% else %}btn-outline-info{% endif %}" 
+                        type="button" 
+                        id="subscribeButton" 
+                        title="{% if publish_email %}Unsubscribe E-Mail Benachrichtigungen{% else %}Subscribe E-Mail Benachrichtigungen{% endif %}">
+                    <i class="fa fa-envelope"></i>
+                </button>
+                <button onclick="openTelegramLinkInNewTab();" class="btn {% if publish_telegram %}btn-info{% else %}btn-outline-info{% endif %}" 
+                        type="button" 
+                        id="subscribeTelegramButton" 
+                        title="{% if publish_telegram %}Unsubscribe Telegram Benachrichtigungen{% else %}Subscribe Telegram Benachrichtigungen{% endif %}">
+                    <i class="fa fa-telegram"></i>
+                </button>
+                <button class="btn btn-outline-danger" type="button" id="deleteButton" title="Delete the selected filter(s)."><i class="fa fa-trash"></i></button>
+            </form>
+        </div>
+      </div>
+      <br>
+      <div class="media">
+        <div class="media-body">
+          <h5>Gespeicherte Immobilien</h5>            
+            <form method="POST" action="{{ url_for('users.account') }}">
+                <div class="form-group">
+                    <table id="bookmark-table" class="table table-striped table-hover">
+                        <thead>
+                            <tr>
+                                <th><input type="checkbox" id="select-all-bookmarks"></th>
+                                <th>Timestamp</th>
+                                <th>URL</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            {% for bookmark in bookmarks %}
+                                <tr>
+                                    <td><input type="checkbox" name="urlBookmarkCheckbox" value="{{ bookmark.url }}" class="bookmark-checkbox"></td>
+                                    <td>{{ bookmark.timestamp }}</td>
+                                    <td><a href="{{ bookmark.url }}" target="_blank">{{ bookmark.url }}</a></td>
+                                </tr>
+                            {% endfor %}
+                        </tbody>
+                    </table>
+                </div>
+                <button class="btn btn-outline-danger" type="button" id="deleteBookmarkButton" title="Delete the selected bookmark(s)."><i class="fa fa-trash"></i></button>
+            </form>
+        </div>
+      </div>
+    </div>
+
+    <script>
+        // Function to toggle the email subscription and send the corresponding POST request
+        function toggleEmailSubscription() {
+            var subscribeButton = document.getElementById('subscribeButton');
+            var isSubscribing = subscribeButton.classList.toggle('active');
+
+            fetch('/toggle_mail_notification', {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json'
+                },
+                body: JSON.stringify({ subscription: isSubscribing })
+            })
+            .then(response => {
+                if (!response.ok) {
+                    console.error('Failed to toggle email subscription');
+                }
+            })
+            .catch(error => {
+                console.error('Error:', error);
+            });
+
+            // Toggle button appearance and title
+            if (isSubscribing) {
+                subscribeButton.classList.remove('btn-outline-info');
+                subscribeButton.classList.add('btn-info');
+                subscribeButton.title = "Unsubscribe E-Mail Benachrichtigungen";
+            } else {
+                subscribeButton.classList.remove('btn-info');
+                subscribeButton.classList.add('btn-outline-info');
+                subscribeButton.title = "Subscribe E-Mail Benachrichtigungen";
+            }
+        }
+
+        // Function to toggle the telegram subscription and send the corresponding POST request
+        function toggleTelegramSubscription() {
+            var subscribeTelegramButton = document.getElementById('subscribeTelegramButton');
+            var isSubscribing = subscribeTelegramButton.classList.toggle('active');
+
+            fetch('/toggle_telegram_notification', {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json'
+                },
+                body: JSON.stringify({ subscription: isSubscribing })
+            })
+            .then(response => {
+                if (!response.ok) {
+                    console.error('Failed to toggle telegram subscription');
+                }
+            })
+            .catch(error => {
+                console.error('Error:', error);
+            });
+
+            // Toggle button appearance and title
+            if (isSubscribing) {
+                subscribeTelegramButton.classList.remove('btn-outline-info');
+                subscribeTelegramButton.classList.add('btn-info');
+                subscribeTelegramButton.title = "Unsubscribe Telegram Benachrichtigungen";
+            } else {
+                subscribeTelegramButton.classList.remove('btn-info');
+                subscribeTelegramButton.classList.add('btn-outline-info');
+                subscribeTelegramButton.title = "Subscribe Telegram Benachrichtigungen";
+            }
+        }
+
+        // Set initial state of the subscribe button based on the server-side variable 'publish_email'
+        document.addEventListener('DOMContentLoaded', function() {
+            var publishEmail = {{ publish_email | tojson }}; // Convert the boolean to a JavaScript boolean
+            var subscribeButton = document.getElementById('subscribeButton');
+
+            if (publishEmail) {
+                subscribeButton.classList.add('active');
+                subscribeButton.classList.remove('btn-outline-info');
+                subscribeButton.classList.add('btn-info');
+                subscribeButton.title = "Unsubscribe E-Mail Benachrichtigungen";
+            } else {
+                subscribeButton.classList.remove('active');
+                subscribeButton.classList.add('btn-outline-info');
+                subscribeButton.classList.remove('btn-info');
+                subscribeButton.title = "Subscribe E-Mail Benachrichtigungen";
+            }
+
+            var publishTelegram = {{ publish_telegram | tojson }};
+            var subscribeTelegramButton = document.getElementById('subscribeTelegramButton');
+            if (publishTelegram) {
+                subscribeTelegramButton.classList.add('active');
+                subscribeTelegramButton.classList.remove('btn-outline-info');
+                subscribeTelegramButton.classList.add('btn-info');
+                subscribeTelegramButton.title = "Unsubscribe Telegram Benachrichtigungen";
+            } else {
+                subscribeTelegramButton.classList.remove('active');
+                subscribeTelegramButton.classList.add('btn-outline-info');
+                subscribeTelegramButton.classList.remove('btn-info');
+                subscribeTelegramButton.title = "Subscribe Telegram Benachrichtigungen";
+            }
+        });
+
+        // Add click event listener to the subscribe button
+        document.getElementById('subscribeButton').addEventListener('click', toggleEmailSubscription);
+        document.getElementById('subscribeTelegramButton').addEventListener('click', toggleTelegramSubscription);
+
+        function openTelegramLinkInNewTab() {
+            var telegramRegistered = {{ telegram_registered | tojson }}; 
+            if (!telegramRegistered) {
+                window.open('https://t.me/similarbooksBot', '_blank');
+            }
+        }
+
+        document.getElementById('deleteButton').addEventListener('click', function() {
+            var checkboxes = document.getElementsByName('urlCheckbox');
+            var selectedUrls = [];
+            for (var i = 0; i < checkboxes.length; i++) {
+                if (checkboxes[i].checked) {
+                    selectedUrls.push(checkboxes[i].value);
+                }
+            }
+
+            // Send the selected URLs to Flask server via POST request
+            fetch('/account', {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json'
+                },
+                body: JSON.stringify({ urls: selectedUrls })
+            })
+            .then(response => {
+                if (response.ok) {
+                    location.reload(); // Refresh the page after deletion
+                    // Deselect checkboxes
+                    for (var i = 0; i < checkboxes.length; i++) {
+                        checkboxes[i].checked = false;
+                    }
+                } else {
+                    console.error('Failed to send selected URLs for deletion');
+                }
+            })
+            .catch(error => {
+                console.error('Error:', error);
+            });
+        });
+
+        document.getElementById('deleteBookmarkButton').addEventListener('click', function() {
+            var checkboxes = document.getElementsByName('urlBookmarkCheckbox');
+            var selectedUrls = [];
+            for (var i = 0; i < checkboxes.length; i++) {
+                if (checkboxes[i].checked) {
+                    selectedUrls.push(checkboxes[i].value);
+                }
+            }
+
+            // Send the selected URLs to Flask server via POST request
+            fetch('/account', {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json'
+                },
+                body: JSON.stringify({ bookmark_urls: selectedUrls })
+            })
+            .then(response => {
+                if (response.ok) {
+                    location.reload(); // Refresh the page after deletion
+                    // Deselect checkboxes
+                    for (var i = 0; i < checkboxes.length; i++) {
+                        checkboxes[i].checked = false;
+                    }
+                } else {
+                    console.error('Failed to send selected URLs for deletion');
+                }
+            })
+            .catch(error => {
+                console.error('Error:', error);
+            });
+        });
+
+        // Select/Deselect all checkboxes for filters
+        document.getElementById('select-all-filters').addEventListener('click', function() {
+            var checkboxes = document.getElementsByClassName('filter-checkbox');
+            for (var i = 0; i < checkboxes.length; i++) {
+                checkboxes[i].checked = this.checked;
+            }
+        });
+
+        // Select/Deselect all checkboxes for bookmarks
+        document.getElementById('select-all-bookmarks').addEventListener('click', function() {
+            var checkboxes = document.getElementsByClassName('bookmark-checkbox');
+            for (var i = 0; i < checkboxes.length; i++) {
+                checkboxes[i].checked = this.checked;
+            }
+        });
+    </script>
+{% endblock content %}

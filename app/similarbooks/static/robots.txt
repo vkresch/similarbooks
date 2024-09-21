@@ -1,0 +1,12 @@
+User-agent: *
+# Disallow private areas
+Disallow: /admin/
+Disallow: /login/
+Disallow: /register/
+Disallow: /account/
+
+# Allow everything else
+Allow: /
+
+# Specify the location of your sitemap
+Sitemap: https://www.similarbooks.net/sitemap.xml

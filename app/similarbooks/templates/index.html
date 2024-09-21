@@ -1,0 +1,305 @@
+{% extends "layout.html" %}
+{% block content %}
+
+<!--hero header-->
+<section class="py-7 py-md-0 bg-hero" id="home">
+    <div class="container">
+        <div class="row vh-md-100">
+            <div class="col-md-8 col-sm-10 col-12 mx-auto my-auto text-center">
+                <h1 class="heading-black text-capitalize">Bewerte und Vergleiche Immobilien auf einer einzigen Plattform</h1>
+                <p class="lead py-3">similarbooks aggregiert und analysiert mehrere Immobilien-Plattformen in einer einzigen Plattform.</p>
+                <form action="{{ url_for('main.index') }}" method="POST">
+                    {{ landing_form.hidden_tag() }}
+                    <fieldset class="form-group">
+                        <div class="form-group">
+                            {% if form.typ.errors %}
+                                {{ landing_form.category(class="form-control form-control-lg is-invalid") }}
+                                <div class="invalid-feedback">
+                                    {% for error in form.typ.errors %}
+                                        <span>{{ error }}</span>
+                                    {% endfor %}
+                                </div>
+                            {% else %}
+                                {{ landing_form.category(class="form-control form-control-lg") }}
+                            {% endif %}
+                        </div>
+                    </fieldset>
+                    <div class="form-group text-center", id="search-btn">
+                        {{ landing_form.submit(class="btn btn-outline-info") }}
+                    </div>
+                </form>
+            </div>
+        </div>
+    </div>
+</section>
+
+
+<!-- form section -->
+<section class="py-7" id="price-estimation">
+    <form method="POST" id="estimate-form" action="">
+        {{ form.hidden_tag() }}
+        <fieldset class="form-group">
+            <legend class="border-bottom mb-4">Preis- und Mietschätzung</legend>
+            <div class="form-group">
+                {{ form.typ.label(class="form-control-label") }}
+                {% if form.typ.errors %}
+                    {{ form.typ(class="form-control form-control-lg is-invalid") }}
+                    <div class="invalid-feedback">
+                        {% for error in form.typ.errors %}
+                            <span>{{ error }}</span>
+                        {% endfor %}
+                    </div>
+                {% else %}
+                    {{ form.typ(class="form-control form-control-lg") }}
+                {% endif %}
+            </div>
+            <div class="form-group">
+                {{ form.street.label(class="form-control-label") }}
+                {% if form.street.errors %}
+                    {{ form.street(class="form-control form-control-lg is-invalid") }}
+                    <div class="invalid-feedback">
+                        {% for error in form.street.errors %}
+                            <span>{{ error }}</span>
+                        {% endfor %}
+                    </div>
+                {% else %}
+                    {{ form.street(class="form-control form-control-lg") }}
+                {% endif %}
+            </div>
+            <div class="form-group">
+                {{ form.postcode.label(class="form-control-label") }}
+                {% if form.postcode.errors %}
+                    {{ form.postcode(class="form-control form-control-lg is-invalid") }}
+                    <div class="invalid-feedback">
+                        {% for error in form.postcode.errors %}
+                            <span>{{ error }}</span>
+                        {% endfor %}
+                    </div>
+                {% else %}
+                    {{ form.postcode(class="form-control form-control-lg") }}
+                {% endif %}
+            </div>
+            <div class="form-group">
+                {{ form.square_meters.label(class="form-control-label") }}
+                {% if form.square_meters.errors %}
+                    {{ form.square_meters(class="form-control form-control-lg is-invalid") }}
+                    <div class="invalid-feedback">
+                        {% for error in form.square_meters.errors %}
+                            <span>{{ error }}</span>
+                        {% endfor %}
+                    </div>
+                {% else %}
+                    {{ form.square_meters(class="form-control form-control-lg") }}
+                {% endif %}
+            </div>
+            <div class="form-group">
+                {{ form.rooms.label(class="form-control-label") }}
+                {% if form.rooms.errors %}
+                    {{ form.rooms(class="form-control form-control-lg is-invalid") }}
+                    <div class="invalid-feedback">
+                        {% for error in form.rooms.errors %}
+                            <span>{{ error }}</span>
+                        {% endfor %}
+                    </div>
+                {% else %}
+                    {{ form.rooms(class="form-control form-control-lg") }}
+                {% endif %}
+            </div>
+            <div class="form-group">
+                {{ form.year_of_construction.label(class="form-control-label") }}
+                {% if form.year_of_construction.errors %}
+                    {{ form.year_of_construction(class="form-control form-control-lg is-invalid") }}
+                    <div class="invalid-feedback">
+                        {% for error in form.year_of_construction.errors %}
+                            <span>{{ error }}</span>
+                        {% endfor %}
+                    </div>
+                {% else %}
+                    {{ form.year_of_construction(class="form-control form-control-lg") }}
+                {% endif %}
+            </div>
+        </fieldset>
+        <br>
+        <div class="form-group text-center", id="submit-btn">
+            {{ form.submit(class="btn btn-outline-info") }}
+        </div>
+        <br>
+        <legend class="border-bottom mb-4">Bewertung</legend>
+        <h5 class="form-group text-left" id="price">Preis: {{ "{:,.2f}".format(estimate['estimates']['price']) }} €</h5>
+        <h5 class="form-group text-left" id="rent">Miete: {{ "{:,.2f}".format(estimate['estimates']['rent']) }} €</h5>
+        <div id="map"></div>
+    </form>
+</section>
+
+
+<!-- features section -->
+<section class="pt-6 pb-7" id="features">
+    <div class="container">
+        <div class="row mt-5">
+            <div class="col-md-6 mx-auto text-center">
+                <h2 class="heading-black">similarbooks {{ version }}</h2>
+            </div>
+            <div class="col-md-10 mx-auto">
+                <div class="row feature-boxes">
+                    <div class="col-md-6 box">
+                        <div class="icon-box box-success">
+                            <div class="icon-box-inner">
+                                <span data-feather="database" width="35" height="35"></span>
+                            </div>
+                        </div>
+                        <h5>Aktuelle Immobilien in Deutschland</h5>
+                    </div>
+                    <div class="col-md-6 box">
+                        <div class="icon-box box-primary">
+                            <div class="icon-box-inner">
+                                <span data-feather="filter" width="35" height="35"></span>
+                            </div>
+                        </div>
+                        <h5>Filterbare Immobilien-Tabelle mit Suchmasken</h5>
+                    </div>
+                    <div class="col-md-6 box">
+                        <div class="icon-box box-danger">
+                            <div class="icon-box-inner">
+                                <span data-feather="hexagon" width="35" height="35"></span>
+                            </div>
+                        </div>
+                        <h5>Clusteranalyse von Immobilien mit vergleichbaren Miet- und Kaufpreisen</h5>
+                    </div>
+                    <div class="col-md-6 box">
+                        <div class="icon-box box-info">
+                            <div class="icon-box-inner">
+                                <span data-feather="dollar-sign" width="35" height="35"></span>
+                            </div>
+                        </div>
+                        <h5>Cashflow- und Rendite-Rechner</h5>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</section>
+
+<script>
+    var map = L.map('map');
+
+    // Define the bounding box for Germany
+    var bounds = [
+        [47.2701114, 5.8663153], // South-West
+        [55.099161, 15.0419319]  // North-East
+    ];
+
+    // Set the view to the bounding box of Germany
+    map.fitBounds(bounds);
+
+    L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
+        attribution: '&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> contributors'
+    }).addTo(map);
+
+    /*Legend specific*/
+    var legend = L.control({ position: "bottomleft" });
+
+    legend.onAdd = function(map) {
+        var div = L.DomUtil.create("div", "legend");
+        div.innerHTML += "<h4>Vergleichsangebote</h4>";
+        div.innerHTML += '<i style="background: #9c2ccb"></i><span>Verkauf</span><br>';
+        div.innerHTML += '<i style="background: #3187cc"></i><span>Vermietung</span><br>';
+        return div;
+    };
+    legend.addTo(map);
+    var markersLayer = L.layerGroup().addTo(map);
+    var markers = L.markerClusterGroup();
+
+    // Function to get marker color
+    function getIcon(color) {
+        return new L.Icon({
+            iconUrl: `https://raw.githubusercontent.com/pointhi/leaflet-color-markers/master/img/marker-icon-2x-${color}.png`,
+            shadowUrl: 'https://cdnjs.cloudflare.com/ajax/libs/leaflet/0.7.7/images/marker-shadow.png',
+            iconSize: [25, 41],
+            iconAnchor: [12, 41],
+            popupAnchor: [1, -34],
+            shadowSize: [41, 41]
+        });
+    }
+
+    // Utility functions
+    function escapeHtml(text) {
+        var map = {
+            '&': '&amp;',
+            '<': '&lt;',
+            '>': '&gt;',
+            '"': '&quot;',
+            "'": '&#039;'
+        };
+        return text.replace(/[&<>"']/g, function(m) { return map[m]; });
+    }
+
+    function formatPrice(price) {
+        return price.toLocaleString('de-DE', { minimumFractionDigits: 2, maximumFractionDigits: 2 });
+    }
+
+    function extractYear(dateString) {
+        return dateString.split('-')[0];
+    }
+
+    const full = location.protocol + '//' + location.host;
+    
+
+    $(document).ready(function() {
+        $('#estimate-form').on('submit', function(event) {
+            event.preventDefault();
+
+            $.ajax({
+                type: 'POST',
+                url: '',
+                data: $(this).serialize(),
+                success: function(response) {  
+                    map.setView([response.location.lat, response.location.lon], 13)
+                    markers.clearLayers();
+                    response.estimates.similar_properties.forEach(function(marker) {
+                        var iconOpacity = marker.is_active ? 1.0 : 0.7;
+                        if (marker.action === 'kaufen') {
+                            var popupContent = '<a href="' + full + '/' + response.typ + '/' + marker.immo_id + '">' + escapeHtml(marker.title).replace(/\n/g, "\\n") + '</a>' +
+                            '<br>Datum: ' + marker.uptime_date +
+                            (marker.price !== null ? '<br>Preis: ' + formatPrice(marker.price) + ' €' : '') +
+                            '<br>Fläche: ' + marker.square_meter + ' m²' +
+                            (marker.price_per_square_meter !== null ? '<br>Preis/m²: ' + formatPrice(marker.price_per_square_meter) + ' €' : '') +
+                            '<br>Baujahr: ' + extractYear(marker.year_of_construction) +
+                            '<br>Zimmer: ' + marker.rooms;
+                            newMarker = L.marker([marker.lat, marker.lon], { icon: getIcon('violet'), opacity: iconOpacity })
+                                .bindPopup(popupContent);
+                        } else if (marker.action === 'mieten') {
+                            var popupContent = '<a href="' + full + '/' + response.typ + '/' + marker.immo_id + '">' + escapeHtml(marker.title).replace(/\n/g, "\\n") + '</a>' +
+                            '<br>Datum: ' + marker.uptime_date +
+                            (marker.rent_price !== null ? '<br>Miete: ' + formatPrice(marker.rent_price) + ' €' : '') +
+                            '<br>Fläche: ' + marker.square_meter + ' m²' +
+                            (marker.rent_per_square_meter !== null ? '<br>Miete/m²: ' + formatPrice(marker.rent_per_square_meter) + ' €' : '') +
+                            '<br>Baujahr: ' + extractYear(marker.year_of_construction) +
+                            '<br>Zimmer: ' + marker.rooms;
+                            newMarker = L.marker([marker.lat, marker.lon], { icon: getIcon('blue'), opacity: iconOpacity })
+                                .bindPopup(popupContent);
+                        }
+
+                        if (newMarker) {
+                            markers.addLayer(newMarker);
+                        }
+                    });
+                    
+                    user_marker = L.marker([ response.location.lat , response.location.lon ], {icon: getIcon('red')}).addTo(map).openPopup();
+                    if (user_marker) {
+                        markersLayer.clearLayers();
+                        user_marker.addTo(markersLayer);
+                    }
+                    map.addLayer(markers);
+                    // Update the estimates on the page
+                    $('#price').text('Preis: ' + parseFloat(response.estimates.price).toFixed(2) + ' €');
+                    $('#rent').text('Miete: ' + parseFloat(response.estimates.rent).toFixed(2) + ' €');
+                },
+                error: function(error) {
+                    console.log('Error:', error);
+                }
+            });
+        });
+    });
+</script>
+
+{% endblock %}

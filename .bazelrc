@@ -1,0 +1,21 @@
+
+############
+# Python   #
+############
+build --python_path="/usr/bin/python3"
+
+############
+# Other    #
+############
+try-import %workspace%/linting.bazelrc
+
+# Don't hide log output from a test execution, which is annoying UX on test failures.
+test --test_output=all
+
+# Restrict workers from reading files that aren't declared as inputs
+# Note that this uses a different sandboxing mechanism than the actions spawn:
+# https://github.com/bazelbuild/bazel/issues/6111
+build --worker_sandboxing
+
+# Local Disk Cache - https://docs.bazel.build/versions/master/remote-caching.html#disk-cache
+build --disk_cache=~/.cache/similarbooks/
