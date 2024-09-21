@@ -146,17 +146,31 @@ def preprocess_text(text):
     return text
 
 
-cleaned_text = preprocess_text(text)
+def load_documents(directory):
+    documents = []
+    for filepath in Path(directory).glob("*.txt"):
+        with open(filepath, "r", encoding="utf-8") as file:
+            text = file.read()
+            cleaned_text = preprocess_text(text)
+            documents.append(cleaned_text)
+    return documents
 
-# Step 1: Split the text into smaller "documents" (e.g., by paragraph or fixed size)
-# We can split by paragraphs for now, but you can adjust it as needed.
-documents = cleaned_text.split("\n\n")  # Splitting by paragraph
+
+# Use a directory that contains all your text documents
+documents_directory = PARENT_DIR / "data/gutenberg_books"
+documents = load_documents(documents_directory)
+
+# Step 2: Split each document into smaller parts (e.g., paragraphs)
+all_paragraphs = []
+for doc in documents:
+    all_paragraphs.extend(doc.split("\n\n"))  # You can adjust this splitting logic
+
 
 # Step 2: Create a Document-Term Matrix
 vectorizer = CountVectorizer(
     min_df=1, stop_words="english"
 )  # min_df=50 removes words occurring <50 times
-dtm = vectorizer.fit_transform(documents)
+dtm = vectorizer.fit_transform(all_paragraphs)
 
 # Step 3: Convert the DTM to a DataFrame for easier viewing
 dtm_df = pd.DataFrame(dtm.toarray(), columns=vectorizer.get_feature_names_out())
@@ -175,7 +189,7 @@ word_occurrences_sorted = word_occurrences.sort_values(
 vectorizer_bigram = CountVectorizer(
     ngram_range=(2, 2), min_df=1, stop_words="english"
 )  # Set ngram_range=(2, 2) for bigrams
-dtm_bigram = vectorizer_bigram.fit_transform(documents)
+dtm_bigram = vectorizer_bigram.fit_transform(all_paragraphs)
 
 # Step 2: Convert the Bigram DTM to a DataFrame
 dtm_bigram_df = pd.DataFrame(
