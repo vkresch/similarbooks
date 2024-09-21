@@ -15,9 +15,11 @@ def main():
     }
 
     print("------------")
-    rent_price_per_square_meter, price_per_square_meter, similar_properties = (
-        get_price_per_square_meter("all_appartments", flat_dict, "2dfmv55")
-    )
+    (
+        rent_price_per_square_meter,
+        price_per_square_meter,
+        similar_properties,
+    ) = get_price_per_square_meter("all_appartments", flat_dict, "2dfmv55")
 
     print(
         "Wohnungsmiete: %.2f € (%.2f €/m²)"
@@ -34,9 +36,11 @@ def main():
         )
     )
     print("------------")
-    rent_price_per_square_meter, price_per_square_meter, similar_properties = (
-        get_price_per_square_meter("all_houses", flat_dict, "2dfmv55")
-    )
+    (
+        rent_price_per_square_meter,
+        price_per_square_meter,
+        similar_properties,
+    ) = get_price_per_square_meter("all_houses", flat_dict, "2dfmv55")
     print(
         "Hausmiete: %.2f € (%.2f €/m²)"
         % (

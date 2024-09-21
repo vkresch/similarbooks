@@ -1,13 +1,28 @@
 import re
 import os
+import logging
+import somoclu
 import numpy as np
+import datetime
 import pandas as pd
 from sklearn.feature_extraction.text import CountVectorizer
+from Scaler import Scaler
+from time import perf_counter
+from pathlib import Path
+import pickle
 
 import numpy as np
 import pandas as pd
 import re
 from tqdm import tqdm  # For progress bar
+
+logging.basicConfig(
+    format="%(asctime)s %(levelname)-8s %(message)s",
+    level=logging.INFO,
+    datefmt="%Y-%m-%d %H:%M:%S",
+)
+
+PARENT_DIR = Path(__file__).resolve().parent
 
 
 def encode_kaski(word_df, bigram_occurrences):
@@ -20,7 +35,7 @@ def encode_kaski(word_df, bigram_occurrences):
         columns=word_df.columns,
     )
 
-    print(f"Encoding words...")
+    logging.info(f"Encoding words...")
 
     # Progress bar
     word_names = word_df.columns
@@ -97,12 +112,12 @@ def encode_kaski(word_df, bigram_occurrences):
         # Update feature_df with the computed values
         feature_df[cnames] = np.concatenate((E_first, E_last))
 
-    print("Finished encoding words!")
+    logging.info("Finished encoding words!")
     return feature_df
 
 
 with open(
-    "/home/vkreschenski/Documents/Privat/Freelancer/similarbooks/data/gutenberg_books/11.txt",
+    PARENT_DIR / Path(f"data/gutenberg_books/11.txt"),
     "r",
     encoding="utf-8",
 ) as file:
@@ -145,7 +160,7 @@ dtm = vectorizer.fit_transform(documents)
 
 # Step 3: Convert the DTM to a DataFrame for easier viewing
 dtm_df = pd.DataFrame(dtm.toarray(), columns=vectorizer.get_feature_names_out())
-# print(dtm_df.head())  # Display the first few rows of the DTM
+# logging.info(dtm_df.head())  # Display the first few rows of the DTM
 
 # Step 4: Sum up the word occurrences across all documents
 word_occurrences = dtm_df.sum(axis=0)
@@ -154,7 +169,7 @@ word_occurrences = dtm_df.sum(axis=0)
 word_occurrences_sorted = word_occurrences.sort_values(
     ascending=False
 )  # Sort by frequency (optional)
-# print(word_occurrences_sorted)  # Display the top 10 most frequent words
+# logging.info(word_occurrences_sorted)  # Display the top 10 most frequent words
 
 # Step 1: Create a Bigram Document-Term Matrix
 vectorizer_bigram = CountVectorizer(
@@ -166,15 +181,15 @@ dtm_bigram = vectorizer_bigram.fit_transform(documents)
 dtm_bigram_df = pd.DataFrame(
     dtm_bigram.toarray(), columns=vectorizer_bigram.get_feature_names_out()
 )
-print(dtm_bigram_df)
+logging.info(dtm_bigram_df)
 
 # Step 3: Sum up the bigram occurrences across all documents
 bigram_occurrences = dtm_bigram_df.sum(axis=0).to_frame().T
-print(bigram_occurrences)
+logging.info(bigram_occurrences)
 
 # Step 4: Sort and display the top 10 most frequent bigrams
 # bigram_occurrences_sorted = bigram_occurrences.sort_values(ascending=False)
-# print(bigram_occurrences_sorted)  # Display the top 10 most frequent bigrams
+# logging.info(bigram_occurrences_sorted)  # Display the top 10 most frequent bigrams
 
 # Step 1: Get the number of columns (terms) from dtm_df
 num_columns = dtm_df.shape[1]
@@ -185,7 +200,46 @@ word_df = pd.DataFrame(np.random.uniform(0.0, 1.0, size=(90, num_columns)))
 # Step 3: Assign the column names of dtm_df to the new word_df
 word_df.columns = dtm_df.columns
 
-print(word_df)
+logging.info(word_df)
 
 kaski_df = encode_kaski(word_df, bigram_occurrences)
-print(kaski_df)
+
+data_train_matrix = kaski_df.T
+
+logging.info(f"Data shape: {data_train_matrix.shape}")
+som = somoclu.Somoclu(
+    10,
+    10,
+    compactsupport=True,
+    maptype="toroid",
+    verbose=2,
+    initialization="pca",
+)
+
+# Start the stopwatch / counter
+t1_start = perf_counter()
+logging.info(f"Training start: {datetime.datetime.now()}")
+som.train(
+    data=data_train_matrix.to_numpy(dtype="float32"),
+    epochs=100,
+    radiuscooling="exponential",
+    scalecooling="exponential",
+)
+logging.info(f"Training finished: {datetime.datetime.now()}")
+
+# Stop the stopwatch / counter
+t1_stop = perf_counter()
+
+delta_seconds = t1_stop - t1_start
+logging.info(f"Elapsed time for training in seconds: {delta_seconds}")
+logging.info(f"Elapsed time for training in minutes: {delta_seconds / 60.0}")
+logging.info(f"Elapsed time for training in hours: {delta_seconds / 3600.0}")
+
+som.labels = data_train_matrix.index
+
+with open(PARENT_DIR / Path(f"models/wordcategory.pkl"), "wb") as file_model:
+    som.name = f"wordcategory"
+    pickle.dump(som, file_model, pickle.HIGHEST_PROTOCOL)
+
+comp = som.view_component_planes()
+umatrix = som.view_umatrix()
