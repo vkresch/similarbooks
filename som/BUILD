@@ -69,6 +69,7 @@ py_binary(
         requirement("numpy"),
         requirement("tqdm"),
         requirement("pandas"),
+        requirement("beautifulsoup4"),
         "//app/similarbooks/main:constants",
         "//app/similarbooks:similarbooks_config",
         ":utils",

@@ -170,22 +170,15 @@ def update(som, immo_id, bmu):
 
 def get_matched_immo_ids(typ, data, immo_id=None, update_som=False):
     top_n = 1
-    merged_matched_list = []
-    while len(merged_matched_list) < MIN_BMU_PROPERTY_COUNT:
-        som, bmu_nodes = get_bmus(typ, data, top_n)
-        bmu_list = bmu_nodes.tolist()
-        collection = DB[som.name]
-        matched_documents = collection.find({"bmu_id": {"$in": bmu_list}})
-        for document in matched_documents:
-            matched_list = document["matched_list"]
-            merged_matched_list.extend(matched_list)
-        top_n += 1
+    matched_list = []
+    matched_indices = np.any(np.all(bmu_nodes == som.bmus[:, None, :], axis=2), axis=1)
+    matched_list = list(som.labels[matched_indices])
 
     if update_som:
-        update(som, immo_id, [bmu_list[0]])
-    if immo_id in merged_matched_list:
-        merged_matched_list.remove(immo_id)
-    return som, merged_matched_list
+        update(som, immo_id, bmu_nodes[0][0])
+    if immo_id in matched_list:
+        matched_list.remove(immo_id)
+    return som, matched_list
 
 
 def get_bmus(typ, data, top_n=1):

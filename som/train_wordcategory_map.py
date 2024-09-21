@@ -168,8 +168,8 @@ for doc in documents:
 
 # Step 2: Create a Document-Term Matrix
 vectorizer = CountVectorizer(
-    min_df=1, stop_words="english"
-)  # min_df=50 removes words occurring <50 times
+    min_df=20, stop_words="english"
+)  # min_df=200 removes words occurring <50 times
 dtm = vectorizer.fit_transform(all_paragraphs)
 
 # Step 3: Convert the DTM to a DataFrame for easier viewing
@@ -187,7 +187,7 @@ word_occurrences_sorted = word_occurrences.sort_values(
 
 # Step 1: Create a Bigram Document-Term Matrix
 vectorizer_bigram = CountVectorizer(
-    ngram_range=(2, 2), min_df=1, stop_words="english"
+    ngram_range=(2, 2), min_df=20, stop_words="english"
 )  # Set ngram_range=(2, 2) for bigrams
 dtm_bigram = vectorizer_bigram.fit_transform(all_paragraphs)
 
@@ -218,12 +218,13 @@ logging.info(word_df)
 
 kaski_df = encode_kaski(word_df, bigram_occurrences)
 
-data_train_matrix = kaski_df.T
+scaler = Scaler()
+data_train_matrix = scaler.scale(kaski_df).T
 
 logging.info(f"Data shape: {data_train_matrix.shape}")
 som = somoclu.Somoclu(
-    10,
-    10,
+    50,
+    50,
     compactsupport=True,
     maptype="toroid",
     verbose=2,
@@ -235,7 +236,7 @@ t1_start = perf_counter()
 logging.info(f"Training start: {datetime.datetime.now()}")
 som.train(
     data=data_train_matrix.to_numpy(dtype="float32"),
-    epochs=100,
+    epochs=500,
     radiuscooling="exponential",
     scalecooling="exponential",
 )
@@ -254,6 +255,3 @@ som.labels = data_train_matrix.index
 with open(PARENT_DIR / Path(f"models/wordcategory.pkl"), "wb") as file_model:
     som.name = f"wordcategory"
     pickle.dump(som, file_model, pickle.HIGHEST_PROTOCOL)
-
-comp = som.view_component_planes()
-umatrix = som.view_umatrix()

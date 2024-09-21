@@ -1,12 +1,15 @@
 import requests
+from pathlib import Path
 from bs4 import BeautifulSoup
 import os
+
+PARENT_DIR = Path(__file__).resolve().parent
 
 
 # Function to download a book from Project Gutenberg
 def download_gutenberg_book(
     book_id,
-    save_dir="/home/vkreschenski/Documents/Privat/Freelancer/similarbooks/data/gutenberg_books",
+    save_dir=PARENT_DIR / Path(f"data/gutenberg_books"),
 ):
     # Construct the URL for the plain text version of the book
     url = f"https://www.gutenberg.org/files/{book_id}/{book_id}-0.txt"
@@ -39,5 +42,8 @@ book_ids = [
     "84",
     "5200",
 ]  # Example book IDs (Pride and Prejudice, Alice in Wonderland, etc.)
-for book_id in book_ids:
-    download_gutenberg_book(book_id)
+# for book_id in book_ids:
+#     download_gutenberg_book(book_id)
+
+for i in range(100):
+    download_gutenberg_book(f"{i}")
