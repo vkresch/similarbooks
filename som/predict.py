@@ -4,10 +4,14 @@ import plotly.graph_objects as go
 import pandas as pd
 import pickle
 from pathlib import Path
+import dash
+from dash import dcc, html
+from dash.dependencies import Input, Output
 
 PARENT_DIR = Path(__file__).resolve().parent
 
 
+# Function to create the SOM plot
 def som_plot(
     data,
     dimname="umatrix",
@@ -50,24 +54,62 @@ def som_plot(
     return fig
 
 
-# TODO: Add model tests so that they make sense
-def main():
+# Dash app setup
+app = dash.Dash(__name__)
+
+# Global variables for the SOM model
+som = None
+matched_list = None
+
+
+# Main function to load the model and prepare the data
+def load_model():
+    global som, matched_list
+
     with open(PARENT_DIR / Path(f"models/websom.pkl"), "rb") as file_model:
         som = pickle.load(file_model)
 
-    bmu_nodes = np.array([np.array([13, 11])])
-    matched_indices = np.any(np.all(bmu_nodes == som.bmus[:, None, :], axis=2), axis=1)
-    # print(som.labels)
-    # print(matched_indices)
-    matched_list = list(pd.Series(som.labels.keys())[matched_indices])
-    print(matched_list)
-
     SOM_MATRIX = {}
-    # SOM_MATRIX["umatrix"] = np.clip(som.umatrix, None, 0.1)
     SOM_MATRIX["umatrix"] = som.umatrix
-    umatrix = som_plot(SOM_MATRIX, "umatrix")
-    umatrix.show()
+    return som_plot(SOM_MATRIX, "umatrix")
 
 
+# Dash layout
+app.layout = html.Div(
+    [
+        dcc.Graph(
+            id="som-plot",
+            figure=load_model(),  # Initialize the plot with the loaded model
+            config={"displayModeBar": False},
+        ),
+        html.Div(id="hover-data"),  # Div to display matched_list based on hover
+    ]
+)
+
+
+# Dash callback to capture hover data and update matched_list
+@app.callback(Output("hover-data", "children"), [Input("som-plot", "hoverData")])
+def display_hover_data(hoverData):
+    if hoverData and som:
+        # Get x and y coordinates from hover event
+        x = int(hoverData["points"][0]["x"])
+        y = int(hoverData["points"][0]["y"])
+
+        # Update bmu_nodes based on hovered x, y values
+        bmu_nodes = np.array([np.array([x, y])])
+
+        # Find matched indices in the SOM based on bmu_nodes
+        matched_indices = np.any(
+            np.all(bmu_nodes == som.bmus[:, None, :], axis=2), axis=1
+        )
+        matched_list = list(pd.Series(som.labels.keys())[matched_indices])
+
+        # Return the matched_list to be displayed in the Div
+        return f"Matched List: {matched_list}"
+
+    return "Hover over the plot to see the matched list."
+
+
+# Run the Dash app
 if __name__ == "__main__":
-    main()
+    app.run_server(debug=True)

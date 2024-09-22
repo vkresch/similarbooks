@@ -45,5 +45,5 @@ book_ids = [
 # for book_id in book_ids:
 #     download_gutenberg_book(book_id)
 
-for i in range(192, 1000):
+for i in range(1000, 80000):
     download_gutenberg_book(f"{i}")
