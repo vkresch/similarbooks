@@ -1,10 +1,14 @@
+import os
 import sys
+import re
 import pickle
 import pymongo
+import logging
 import datetime
 import requests
 import pandas as pd
 import numpy as np
+from tqdm import tqdm  # For progress bar
 from pathlib import Path
 import som.Scaler as Scaler
 from geopy.geocoders import Nominatim
@@ -15,14 +19,6 @@ from app.similarbooks.main.constants import (
 )
 from app.similarbooks.config import Config
 
-sys.modules["Scaler"] = Scaler
-
-PARENT_DIR = Path(__file__).resolve().parent
-
-# Connect to the MongoDB server
-CLIENT = pymongo.MongoClient(Config.MONGODB_SETTINGS["host"])
-DB = CLIENT["similarbooks"]
-
 
 def load_file(path):
     with open(path, "rb") as file_model:
@@ -30,192 +26,140 @@ def load_file(path):
     return obj
 
 
-model_dict = {}
+def encode_kaski(word_df, bigram_occurrences):
+    # Dimensions of the word_df (used to create feature_df)
+    word_encoding_length, word_number_length = word_df.shape
 
-
-def get_clustered_real_estate(real_estates):
-    return [
-        {
-            "immo_id": re["node"]["immo_id"],
-            "is_active": re["node"]["is_active"],
-            "lat": re["node"]["lat"],
-            "lon": re["node"]["lon"],
-            "title": re["node"]["title"].replace("\n", " ").replace("\r", ""),
-            "square_meter": re["node"]["square_meter"],
-            "rooms": re["node"]["rooms"],
-            "year_of_construction": (
-                re["node"]["year_of_construction"][:18]
-                if re["node"]["year_of_construction"]
-                else None
-            ),
-            "price": re["node"]["price"],
-            "price_per_square_meter": re["node"]["price_per_square_meter"],
-            "rent_price": re["node"]["rent_price"],
-            "rent_per_square_meter": re["node"]["rent_per_square_meter"],
-            "action": re["node"]["action"],
-            "uptime_date": re["node"]["uptime_date"][:18],
-            "spider": re["node"]["spider"],
-            "url": re["node"]["url"],
-        }
-        for re in real_estates
-    ]
-
-
-def get_price_per_square_meter(typ, data, immo_id, update_som=False):
-    if data["lat"] is None or data["lon"] is None or data["square_meter"] is None:
-        return None, None, []
-    som, immo_ids = get_matched_immo_ids(typ, data, immo_id, update_som)
-    cluster_query = LOCATION_QUERY.format(
-        typ,
-        "{{immo_id_in: {0}, lat_exists: true, , lon_exists: true, is_foreclosure: false, is_erbbaurecht: false}}".format(
-            immo_ids
-        ),
-    ).replace("'", '"')
-    cluster_response = requests.post(
-        url=GRAPHQL_ENDPOINT,
-        json={
-            "query": cluster_query,
-        },
-        headers={"X-RapidAPI-Proxy-Secret": Config.SECRET_KEY},
-    ).json()
-    if cluster_response.get("data") is None:
-        return None, None, []
-    real_estates = cluster_response["data"][typ]["edges"]
-    clustered_real_estates = get_clustered_real_estate(real_estates)
-    if len(clustered_real_estates) > 0:
-        # TODO: Add here the similarity check to avoid average calculation error
-        df = pd.DataFrame.from_dict(clustered_real_estates).drop_duplicates(
-            subset=[
-                "square_meter",
-                "year_of_construction",
-                "rooms",
-                "price",
-                "rent_price",
-                "action",
-            ]
-        )
-        filtered_rent_df = df[(df["rent_price"] > 100) & (df["rent_price"] < 15_000)]
-        rent_price_per_square_meter = filtered_rent_df["rent_per_square_meter"].mean()
-
-        filtered_price_df = df[(df["price"] > 15_000)]
-        price_per_square_meter = filtered_price_df["price_per_square_meter"].mean()
-        return (
-            rent_price_per_square_meter,
-            price_per_square_meter,
-            clustered_real_estates,
-        )
-    return None, None, clustered_real_estates
-
-
-geolocator = Nominatim(user_agent="immolocation")
-
-
-def get_coordinates(street, zipcode):
-    zipcode_str = f"{zipcode}"
-    if len(zipcode_str) == 4:
-        zipcode_str = f"0{zipcode_str}"
-    location = geolocator.geocode(
-        {"postalcode": zipcode_str, "street": street, "country": "Germany"}
+    # Initialize the feature DataFrame (twice the rows of word_df)
+    feature_df = pd.DataFrame(
+        np.zeros((word_encoding_length * 2, word_number_length)),
+        columns=word_df.columns,
     )
-    if location is None:
-        location = geolocator.geocode({"postalcode": zipcode_str, "country": "Germany"})
 
-    if location is None:
-        return {"lat": None, "lon": None}
+    logging.info(f"Encoding words...")
 
-    return {"lat": location.latitude, "lon": location.longitude}
-
-
-def get_top_bmus(som, activation_map, top_n):
-    """Returns the top n matching units.
-
-    :param activation_map: Activation map computed with som.get_surface_state()
-    :type activation_map: 2D numpy.array
-
-    :returns: The bmus indexes and the second bmus indexes corresponding to
-              this activation map (same as som.bmus for the training samples).
-    :rtype: tuple of 2D numpy.array
-    """
-
-    # Normal BMU finding
-    if top_n == 1:
-        return som.get_bmus(activation_map)
-
-    n_samples = activation_map.shape[0]
-    top_bmus_combined = np.empty((n_samples, top_n, 2), dtype=int)
-    for n in range(top_n):
-        # Get the BMU indices
-        bmu_indices = activation_map.argmin(axis=1)
-        Y, X = np.unravel_index(bmu_indices, (som._n_rows, som._n_columns))
-        top_bmus_combined[:, n, :] = np.vstack((X, Y)).T
-
-        # Mask the BMU values
-        activation_map[np.arange(n_samples), bmu_indices] = np.inf
-
-    return top_bmus_combined[0]
-
-
-def update(som, immo_id, bmu):
-    collection = DB[som.name]
-    matched_list = collection.find_one({"bmu_id": bmu}).get("matched_list")
-    if immo_id not in matched_list:
-        matched_list.append(immo_id)
-
-        # Prepare the document to insert
-        document = {"bmu_id": bmu, "matched_list": matched_list}
-
-        # Upsert the document into the collection
-        collection.update_one({"bmu_id": bmu}, {"$set": document}, upsert=True)
-
-
-def get_matched_immo_ids(typ, data, immo_id=None, update_som=False):
-    top_n = 1
-    matched_list = []
-    matched_indices = np.any(np.all(bmu_nodes == som.bmus[:, None, :], axis=2), axis=1)
-    matched_list = list(som.labels[matched_indices])
-
-    if update_som:
-        update(som, immo_id, bmu_nodes[0][0])
-    if immo_id in matched_list:
-        matched_list.remove(immo_id)
-    return som, matched_list
-
-
-def get_bmus(typ, data, top_n=1):
-    model = "lat_lon_sq_bj_ro"
-    flat_dict = {
-        "immo_id": ["xxx"],
-        "lat": [data["lat"]],
-        "lon": [data["lon"]],
-        "square_meter": [data["square_meter"]],
-    }
-    year_of_construction = data.get("year_of_construction")
-    rooms = data.get("rooms")
-
-    if year_of_construction and rooms:
-        flat_dict["rooms"] = [data["rooms"]]
-        flat_dict["age"] = [
-            datetime.date.today().year - int(data["year_of_construction"][:4])
+    # Progress bar
+    word_names = word_df.columns
+    for cnames in tqdm(word_names, total=word_number_length):
+        # Match bigrams that contain the word (cnames) as the first word
+        match_all = [
+            bool(re.search(rf"\b{cnames}\b", bigram, flags=re.IGNORECASE))
+            for bigram in bigram_occurrences.columns
         ]
+        all_match_bigrams = bigram_occurrences.loc[:, match_all]
 
-    if rooms and year_of_construction is None:
-        model = "lat_lon_sq_ro"
-        flat_dict["rooms"] = [data["rooms"]]
+        # Ensure all_match_bigrams is a DataFrame, even if it contains a single column
+        if isinstance(all_match_bigrams, pd.Series):
+            all_match_bigrams = all_match_bigrams.to_frame()
 
-    if year_of_construction and rooms is None:
-        model = "lat_lon_sq_bj"
-        flat_dict["age"] = [
-            datetime.date.today().year - int(data["year_of_construction"][:4])
+        # Match bigrams where 'cnames' is the first word
+        match_names_first = [
+            bool(re.match(rf"^{cnames} ", bigram, flags=re.IGNORECASE))
+            for bigram in all_match_bigrams.columns
         ]
+        word_set_first = all_match_bigrams.loc[:, match_names_first]
+        if isinstance(word_set_first, pd.Series):  # Ensure DataFrame even if one column
+            word_set_first = word_set_first.to_frame()
 
-    if year_of_construction is None and rooms is None:
-        model = "lat_lon_sq"
-    som = model_dict[typ][model]["som"]
+        word_set_names_first = [
+            re.sub(rf"^{cnames} ", "", bigram) for bigram in word_set_first.columns
+        ]
+        word_sum_count_first = word_set_first.sum().sum()
 
-    # Proceed with model calculation
-    df = pd.DataFrame.from_dict(flat_dict)
-    df.set_index("immo_id", inplace=True)
-    scaled_df = model_dict[typ][model]["scaler"].transform(df)
-    active_map = som.get_surface_state(data=scaled_df.to_numpy())
-    bmu_nodes = get_top_bmus(som, active_map, top_n=top_n)
-    return som, bmu_nodes
+        word_sum_vector_first = np.zeros(word_encoding_length)
+        for word, bigram_col in zip(word_set_names_first, word_set_first.columns):
+            word_vector = (
+                word_df[word]
+                if word in word_df.columns
+                else np.zeros(word_encoding_length)
+            )
+            word_count = word_set_first[bigram_col].sum()
+            word_sum_vector_first += word_count * word_vector
+        E_first = (
+            word_sum_vector_first / word_sum_count_first
+            if word_sum_count_first != 0
+            else np.zeros(word_encoding_length)
+        )
+
+        # Match bigrams where 'cnames' is the last word
+        match_names_last = [
+            bool(re.search(rf" {cnames}$", bigram, flags=re.IGNORECASE))
+            for bigram in all_match_bigrams.columns
+        ]
+        word_set_last = all_match_bigrams.loc[:, match_names_last]
+        if isinstance(word_set_last, pd.Series):  # Ensure DataFrame even if one column
+            word_set_last = word_set_last.to_frame()
+
+        word_set_names_last = [
+            re.sub(rf" {cnames}$", "", bigram) for bigram in word_set_last.columns
+        ]
+        word_sum_count_last = word_set_last.sum().sum()
+
+        word_sum_vector_last = np.zeros(word_encoding_length)
+        for word, bigram_col in zip(word_set_names_last, word_set_last.columns):
+            word_vector = (
+                word_df[word]
+                if word in word_df.columns
+                else np.zeros(word_encoding_length)
+            )
+            word_count = word_set_last[bigram_col].sum()
+            word_sum_vector_last += word_count * word_vector
+        E_last = (
+            word_sum_vector_last / word_sum_count_last
+            if word_sum_count_last != 0
+            else np.zeros(word_encoding_length)
+        )
+
+        # Update feature_df with the computed values
+        feature_df[cnames] = np.concatenate((E_first, E_last))
+
+    logging.info("Finished encoding words!")
+    return feature_df
+
+
+def preprocess_text(text):
+    # Remove non-ASCII characters
+    text = re.sub(r"[^\x00-\x7F]+", " ", text)
+
+    # Remove special characters and numbers
+    text = re.sub(r"[,:.{[}\'\"\]]", "", text)
+    text = re.sub(r"\d+", "", text)
+    text = re.sub(r"_", "", text)
+    text = re.sub(r":", "", text)
+    text = re.sub(r"'", "", text)
+
+    # Convert text to lowercase
+    text = text.lower()
+
+    # Remove emails and URLs
+    text = re.sub(r"\S+@\S+", "", text)  # Emails
+    text = re.sub(r"http\S+|www\S+", "", text)  # URLs
+
+    # Remove trailing and leading whitespaces
+    text = text.strip()
+
+    return text
+
+
+def load_documents_list(directory):
+    logging.info(f"Loading documents ...")
+    documents = []
+    for filepath in tqdm(Path(directory).glob("*.txt")):
+        with open(filepath, "r", encoding="utf-8") as file:
+            text = file.read()
+            cleaned_text = preprocess_text(text)
+            documents.append(cleaned_text)
+    return documents
+
+
+def load_documents_dict(directory):
+    logging.info(f"Loading documents ...")
+    documents = {}
+    for filepath in tqdm(Path(directory).glob("*.txt")):
+        with open(filepath, "r", encoding="utf-8") as file:
+            text = file.read()
+            cleaned_text = preprocess_text(text)
+            filepath = os.path.basename(filepath)
+            filename = os.path.splitext(filepath)[0]
+            documents[filename] = cleaned_text
+    return documents

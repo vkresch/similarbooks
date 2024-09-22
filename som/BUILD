@@ -90,3 +90,18 @@ py_binary(
         ":utils",
     ],
 )
+
+py_binary(
+    name = "train_websom",
+    main = "train_websom.py",
+    srcs = ["train_websom.py"],
+    deps = [
+        requirement("somoclu"),
+        requirement("numpy"),
+        requirement("tqdm"),
+        requirement("pandas"),
+        requirement("nltk"),
+        "//app/similarbooks/main:constants",
+        ":utils",
+    ],
+)
