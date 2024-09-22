@@ -26,8 +26,6 @@ from similarbooks.main.forms import (
     LandingSearchForm,
 )
 from similarbooks.config import Config
-from similarbooks.main.utils import get_data_from_url, get_detailed_data
-from som.utils import model_dict, get_coordinates, get_price_per_square_meter
 
 VERSION = f"v{Config.VERSION_MAJOR}.{Config.VERSION_MINOR}.{Config.VERSION_PATCH}"
 
@@ -45,44 +43,6 @@ def ping():
 @main.route("/", methods=["POST", "GET"])
 def index():
     return render_template("home.html")
-
-    landing_form = LandingSearchForm()
-    if landing_form.validate_on_submit():
-        return redirect(url_for(landing_form.category.data, datemi=MIN_DATE_DISPLAY))
-
-    form = PropertyForm()
-    estimate = {
-        "estimates": {
-            "rent": 0.0,
-            "price": 0.0,
-            "similar_properties": [],
-        },
-        "location": {"lat": None, "lon": None},
-    }
-    if form.validate_on_submit():
-        data = {
-            "street": form.street.data,
-            "postcode": form.postcode.data,
-            "square_meters": form.square_meters.data,
-            "rooms": form.rooms.data,
-            "year_of_construction": form.year_of_construction.data,
-            "typ": form.typ.data,
-        }
-        estimate = requests.post(
-            url=request.host_url + "estimate",
-            json=data,
-            headers={"X-RapidAPI-Proxy-Secret": Config.EVAL_API_SECRET_KEY},
-        ).json()
-        # Return JSON response if it's an AJAX request
-        if request.headers.get("X-Requested-With") == "XMLHttpRequest":
-            return jsonify(estimate)
-    return render_template(
-        "index.html",
-        form=form,
-        landing_form=landing_form,
-        estimate=estimate,
-        version=VERSION,
-    )
 
 
 @main.route("/about")

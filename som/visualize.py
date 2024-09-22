@@ -7,7 +7,7 @@ from app.similarbooks.config import Config
 from app.similarbooks.main.constants import (
     GRAPHQL_ENDPOINT,
 )
-from utils import load_file, model_dict, get_bmus
+from utils import load_file, get_bmus
 import pandas as pd
 
 # lat and lon for german states

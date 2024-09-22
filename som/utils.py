@@ -29,6 +29,35 @@ def load_file(path):
     return obj
 
 
+# Function to parse the desired information
+def parse_gutenberg_info(file_path):
+    # Dictionary to store parsed information
+    info = {
+        "Title": None,
+        "Author": None,
+        "Release Date": None,
+        "Language": None,
+        "Produced by": None,
+    }
+
+    # Open the text file and read the lines
+    with open(file_path, "r", encoding="utf-8") as file:
+        for line in file:
+            # Check each line for the desired fields and extract values
+            if line.startswith("Title:"):
+                info["Title"] = line.split("Title:")[1].strip()
+            elif line.startswith("Author:"):
+                info["Author"] = line.split("Author:")[1].strip()
+            elif line.startswith("Release Date:"):
+                info["Release Date"] = line.split("Release Date:")[1].strip()
+            elif line.startswith("Language:"):
+                info["Language"] = line.split("Language:")[1].strip()
+            elif line.startswith("Produced by:"):
+                info["Produced by"] = line.split("Produced by:")[1].strip()
+
+    return info
+
+
 def draw_barchart(filename, hit_histogram):
 
     x = np.arange(len(hit_histogram))

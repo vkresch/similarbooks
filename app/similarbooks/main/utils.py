@@ -8,7 +8,6 @@ from time import perf_counter
 from urllib.parse import urlparse
 from urllib.parse import parse_qs
 import pandas as pd
-from som.utils import get_matched_immo_ids, get_clustered_real_estate
 import logging
 import hashlib
 from app.similarbooks.config import Config
@@ -424,84 +423,6 @@ def get_filter_dict(url):
     }
     logging.debug(filter_dict)
     return filter_dict
-
-
-def get_detailed_data(immo_id, typ, cashflow_parameter):
-    CACHE_TIMEOUT = 60 * 60  # 1h
-    query_string = "{{immo_id: '{0}'}}".format(immo_id)
-    query = BASIC_QUERY.format(
-        typ,
-        query_string,
-        cashflow_parameter.get("equity_percentage"),
-        cashflow_parameter.get("interest"),
-        cashflow_parameter.get("repayment"),
-    ).replace("'", '"')
-    logging.debug(f"Query:\n{query}")
-    response = cache.get(hashlib.sha1(query.encode("utf-8")).hexdigest())
-    if response is None:
-        response = requests.post(
-            url=GRAPHQL_ENDPOINT,
-            json={"query": query},
-            headers={"X-RapidAPI-Proxy-Secret": Config.SECRET_KEY},
-        ).json()
-        cache.set(
-            hashlib.sha1(query.encode("utf-8")).hexdigest(),
-            response,
-            timeout=CACHE_TIMEOUT,
-        )
-    real_estate = response["data"][typ]["edges"]
-    if len(real_estate) == 0:
-        logging.warning(
-            f"No real estate found for immo_id: {immo_id} with lat and lon!"
-        )
-        return None
-    node = real_estate[0]["node"]
-    immo_ids = []
-    if (
-        node["lat"] is not None
-        and node["lon"] is not None
-        and node["square_meter"] is not None
-    ):
-        _, immo_ids = get_matched_immo_ids(
-            typ, node, node.get("immo_id"), update_som=True
-        )
-    # NOTE: display foreclosure and erbbaurecht here too
-    cluster_query = LOCATION_QUERY.format(
-        typ,
-        "{{immo_id_in: {0}, lat_exists: true, lon_exists: true}}".format(immo_ids),
-    ).replace("'", '"')
-    cluster_response = cache.get(
-        hashlib.sha1(cluster_query.encode("utf-8")).hexdigest()
-    )
-    if cluster_response is None:
-        cluster_response = requests.post(
-            url=GRAPHQL_ENDPOINT,
-            json={
-                "query": cluster_query,
-            },
-            headers={"X-RapidAPI-Proxy-Secret": Config.SECRET_KEY},
-        ).json()
-        cache.set(
-            hashlib.sha1(cluster_query.encode("utf-8")).hexdigest(),
-            cluster_response,
-            timeout=CACHE_TIMEOUT,
-        )
-    real_estates = cluster_response["data"][typ]["edges"]
-    clustered_real_estates = get_clustered_real_estate(real_estates)
-    similar_real_estates = {
-        cre["immo_id"]: {
-            "spider": cre["spider"],
-            "url": cre["url"],
-            "uptime_date": cre["uptime_date"],
-            "price": cre["price"],
-            "rent_price": cre["rent_price"],
-        }
-        for cre in clustered_real_estates
-        if immo_id != cre["immo_id"] and check_similarity(node, cre)
-    }
-    node["similar_real_estates"] = similar_real_estates
-    node["clustered_real_estates"] = clustered_real_estates
-    return node
 
 
 def check_similarity(node, clustered_real_estates):

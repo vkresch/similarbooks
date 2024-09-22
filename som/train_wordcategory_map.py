@@ -35,7 +35,7 @@ for doc in documents:
 
 # Step 2: Create a Document-Term Matrix
 vectorizer = CountVectorizer(
-    min_df=20, stop_words="english"
+    min_df=50, stop_words="english"
 )  # min_df=200 removes words occurring <50 times
 dtm = vectorizer.fit_transform(all_paragraphs)
 
@@ -47,7 +47,7 @@ logging.info(word_occurrences)
 
 # Step 1: Create a Bigram Document-Term Matrix
 vectorizer_bigram = CountVectorizer(
-    ngram_range=(2, 2), min_df=20, stop_words="english"
+    ngram_range=(2, 2), min_df=50, stop_words="english"
 )  # Set ngram_range=(2, 2) for bigrams
 dtm_bigram = vectorizer_bigram.fit_transform(all_paragraphs)
 

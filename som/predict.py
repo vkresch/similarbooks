@@ -7,6 +7,8 @@ from pathlib import Path
 import dash
 from dash import dcc, html
 from dash.dependencies import Input, Output
+from dash import dash_table
+from som.utils import parse_gutenberg_info
 
 PARENT_DIR = Path(__file__).resolve().parent
 
@@ -104,8 +106,31 @@ def display_hover_data(hoverData):
         )
         matched_list = list(pd.Series(som.labels.keys())[matched_indices])
 
-        # Return the matched_list to be displayed in the Div
-        return f"Matched List: {matched_list}"
+        metadata = [
+            parse_gutenberg_info(PARENT_DIR / Path(f"data/gutenberg_books/{match}.txt"))
+            for match in matched_list
+        ]
+
+        metadata_df = pd.DataFrame(metadata)
+
+        # Return a Dash DataTable with the metadata
+        return dash_table.DataTable(
+            columns=[{"name": col, "id": col} for col in metadata_df.columns],
+            data=metadata_df.to_dict("records"),
+            style_table={"overflowX": "auto"},  # Allow horizontal scrolling
+            style_cell={
+                "textAlign": "left",
+                "padding": "5px",
+                "whiteSpace": "normal",  # Allow wrapping of text
+            },
+            style_header={"backgroundColor": "lightgrey", "fontWeight": "bold"},
+            style_data_conditional=[
+                {
+                    "if": {"row_index": "odd"},
+                    "backgroundColor": "lightblue",
+                },  # Stripe pattern
+            ],
+        )
 
     return "Hover over the plot to see the matched list."
 
