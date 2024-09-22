@@ -1,7 +1,6 @@
 import requests
 import numpy as np
 import plotly.graph_objects as go
-from utils import load_file, model_dict, get_price_per_square_meter
 import pandas as pd
 import pickle
 from pathlib import Path
@@ -53,14 +52,14 @@ def som_plot(
 
 # TODO: Add model tests so that they make sense
 def main():
-    with open(PARENT_DIR / Path(f"models/wordcategory.pkl"), "rb") as file_model:
+    with open(PARENT_DIR / Path(f"models/websom.pkl"), "rb") as file_model:
         som = pickle.load(file_model)
 
-    bmu_nodes = np.array([np.array([20, 39])])
+    bmu_nodes = np.array([np.array([13, 11])])
     matched_indices = np.any(np.all(bmu_nodes == som.bmus[:, None, :], axis=2), axis=1)
     # print(som.labels)
     # print(matched_indices)
-    matched_list = list(som.labels[matched_indices])
+    matched_list = list(pd.Series(som.labels.keys())[matched_indices])
     print(matched_list)
 
     SOM_MATRIX = {}

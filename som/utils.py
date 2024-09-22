@@ -11,6 +11,7 @@ import numpy as np
 from tqdm import tqdm  # For progress bar
 from pathlib import Path
 import som.Scaler as Scaler
+import matplotlib.pyplot as plt
 from geopy.geocoders import Nominatim
 from app.similarbooks.main.constants import (
     GRAPHQL_ENDPOINT,
@@ -19,11 +20,27 @@ from app.similarbooks.main.constants import (
 )
 from app.similarbooks.config import Config
 
+PARENT_DIR = Path(__file__).resolve().parent
+
 
 def load_file(path):
     with open(path, "rb") as file_model:
         obj = pickle.load(file_model)
     return obj
+
+
+def draw_barchart(filename, hit_histogram):
+
+    x = np.arange(len(hit_histogram))
+    plt.bar(x, hit_histogram)
+
+    # Add labels and title
+    plt.xlabel("Nodes")
+    plt.ylabel("Word Hits")
+    plt.title("Word Category Map Hits")
+
+    # Display the histogram
+    plt.savefig(PARENT_DIR / Path(f"hist_{filename}.png"))
 
 
 def encode_kaski(word_df, bigram_occurrences):
@@ -141,6 +158,19 @@ def preprocess_text(text):
     return text
 
 
+def get_hit_histogram(som, dtm):
+    rows, columns = som.umatrix.shape
+    node_numbers = rows * columns
+    hit_histogram = np.zeros(node_numbers)
+    terms = dtm.columns
+    for term in terms:
+        bmu = som.labels.get(term)
+        if bmu is not None:
+            index = bmu[1] * columns + bmu[0]
+            hit_histogram[index] = dtm[term]
+    return hit_histogram
+
+
 def load_documents_list(directory):
     logging.info(f"Loading documents ...")
     documents = []
@@ -148,7 +178,7 @@ def load_documents_list(directory):
         with open(filepath, "r", encoding="utf-8") as file:
             text = file.read()
             cleaned_text = preprocess_text(text)
-            documents.append(cleaned_text)
+            documents.extend(cleaned_text.split("\n\n"))
     return documents
 
 
@@ -161,5 +191,5 @@ def load_documents_dict(directory):
             cleaned_text = preprocess_text(text)
             filepath = os.path.basename(filepath)
             filename = os.path.splitext(filepath)[0]
-            documents[filename] = cleaned_text
+            documents[filename] = cleaned_text.split("\n\n")
     return documents

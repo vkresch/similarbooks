@@ -39,18 +39,11 @@ vectorizer = CountVectorizer(
 )  # min_df=200 removes words occurring <50 times
 dtm = vectorizer.fit_transform(all_paragraphs)
 
-# Step 3: Convert the DTM to a DataFrame for easier viewing
-dtm_df = pd.DataFrame(dtm.toarray(), columns=vectorizer.get_feature_names_out())
-# logging.info(dtm_df.head())  # Display the first few rows of the DTM
-
 # Step 4: Sum up the word occurrences across all documents
-word_occurrences = dtm_df.sum(axis=0)
-
-# Display the word occurrences
-word_occurrences_sorted = word_occurrences.sort_values(
-    ascending=False
-)  # Sort by frequency (optional)
-# logging.info(word_occurrences_sorted)  # Display the top 10 most frequent words
+word_occurrences = pd.DataFrame(
+    dtm.sum(axis=0).flatten(), columns=vectorizer.get_feature_names_out()
+)
+logging.info(word_occurrences)
 
 # Step 1: Create a Bigram Document-Term Matrix
 vectorizer_bigram = CountVectorizer(
@@ -58,28 +51,20 @@ vectorizer_bigram = CountVectorizer(
 )  # Set ngram_range=(2, 2) for bigrams
 dtm_bigram = vectorizer_bigram.fit_transform(all_paragraphs)
 
-# Step 2: Convert the Bigram DTM to a DataFrame
-dtm_bigram_df = pd.DataFrame(
-    dtm_bigram.toarray(), columns=vectorizer_bigram.get_feature_names_out()
-)
-logging.info(dtm_bigram_df)
-
 # Step 3: Sum up the bigram occurrences across all documents
-bigram_occurrences = dtm_bigram_df.sum(axis=0).to_frame().T
+bigram_occurrences = pd.DataFrame(
+    dtm_bigram.sum(axis=0).flatten(), columns=vectorizer_bigram.get_feature_names_out()
+)
 logging.info(bigram_occurrences)
 
-# Step 4: Sort and display the top 10 most frequent bigrams
-# bigram_occurrences_sorted = bigram_occurrences.sort_values(ascending=False)
-# logging.info(bigram_occurrences_sorted)  # Display the top 10 most frequent bigrams
-
 # Step 1: Get the number of columns (terms) from dtm_df
-num_columns = dtm_df.shape[1]
+num_columns = word_occurrences.shape[1]
 
 # Step 2: Create a DataFrame with 90 rows and random values (between 0.0 and 1.0) for each word
 word_df = pd.DataFrame(np.random.uniform(0.0, 1.0, size=(90, num_columns)))
 
 # Step 3: Assign the column names of dtm_df to the new word_df
-word_df.columns = dtm_df.columns
+word_df.columns = word_occurrences.columns
 
 logging.info(word_df)
 
@@ -117,7 +102,7 @@ logging.info(f"Elapsed time for training in seconds: {delta_seconds}")
 logging.info(f"Elapsed time for training in minutes: {delta_seconds / 60.0}")
 logging.info(f"Elapsed time for training in hours: {delta_seconds / 3600.0}")
 
-som.labels = data_train_matrix.index
+som.labels = dict(zip(data_train_matrix.index, som.bmus))
 
 with open(PARENT_DIR / Path(f"models/wordcategory.pkl"), "wb") as file_model:
     som.name = f"wordcategory"
