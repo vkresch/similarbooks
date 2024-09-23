@@ -14,22 +14,6 @@ py_library(
 )
 
 py_binary(
-    name = "train",
-    main = "train.py",
-    srcs = ["train.py"],
-    deps = [
-        requirement("somoclu"),
-        requirement("numpy"),
-        requirement("tqdm"),
-        requirement("pandas"),
-        requirement("matplotlib"),
-        "//app/similarbooks/main:constants",
-        "//app/similarbooks:similarbooks_config",
-        ":utils",
-    ],
-)
-
-py_binary(
     name = "predict",
     main = "predict.py",
     srcs = ["predict.py"],
@@ -40,22 +24,6 @@ py_binary(
         requirement("pandas"),
         requirement("dash"),
         "//app/similarbooks/main:constants",
-        ":utils",
-    ],
-)
-
-py_binary(
-    name = "visualize",
-    main = "visualize.py",
-    srcs = ["visualize.py"],
-    deps = [
-        requirement("somoclu"),
-        requirement("plotly"),
-        requirement("numpy"),
-        requirement("tqdm"),
-        requirement("pandas"),
-        "//app/similarbooks/main:constants",
-        "//app/similarbooks:similarbooks_config",
         ":utils",
     ],
 )
@@ -86,7 +54,6 @@ py_binary(
         requirement("numpy"),
         requirement("tqdm"),
         requirement("pandas"),
-        requirement("nltk"),
         "//app/similarbooks/main:constants",
         ":utils",
     ],
@@ -101,7 +68,6 @@ py_binary(
         requirement("numpy"),
         requirement("tqdm"),
         requirement("pandas"),
-        requirement("nltk"),
         "//app/similarbooks/main:constants",
         ":utils",
     ],

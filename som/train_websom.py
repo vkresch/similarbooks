@@ -83,8 +83,8 @@ train_data = scaler.scale(hit_df.T).T
 
 logging.info(f"Data shape: {train_data.shape}")
 som = somoclu.Somoclu(
-    20,
-    20,
+    60,
+    30,
     compactsupport=True,
     maptype="toroid",
     verbose=2,

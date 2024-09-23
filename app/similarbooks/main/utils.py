@@ -14,17 +14,6 @@ from app.similarbooks.config import Config
 from app.similarbooks.main.common import cache
 from app.similarbooks.main.constants import (
     GRAPHQL_ENDPOINT,
-    KAUFEN_QUERY,
-    CACHED_KAUFEN_QUERY,
-    MIETEN_QUERY,
-    CACHED_MIETEN_QUERY,
-    LOCATION_QUERY,
-    BASIC_QUERY,
-    OPENPLZAPI_LOCALITIES,
-    DEBUG,
-    DEFAULT_INTEREST,
-    DEFAULT_REPAYMENT,
-    DEFAULT_EQUITY,
 )
 
 average_name_dict = {
@@ -334,7 +323,7 @@ def get_filter_dict(url):
 
     parsed_params = parse_qs(parsed_url.query)
     ort = get_param(parsed_params, "ort", str, None)
-    immo_id = get_param(parsed_params, "immo_id", str, None)
+    book_id = get_param(parsed_params, "book_id", str, None)
     bundesland = get_param(parsed_params, "bl", str, None)
     title = get_param(parsed_params, "title", str, None)
     is_active = get_param(parsed_params, "is_active", str, None)
@@ -376,7 +365,7 @@ def get_filter_dict(url):
     spider = get_param(parsed_params, "spider", str, None)
 
     filter_dict = {
-        "immo_id_in": immo_id,
+        "book_id_in": book_id,
         "is_active": get_bool(is_active) if is_active is not None else True,
         "action": action,
         "zipcode_in": get_zipcodes(ort),

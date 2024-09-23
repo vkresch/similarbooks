@@ -43,7 +43,6 @@ dtm = vectorizer.fit_transform(all_paragraphs)
 word_occurrences = pd.DataFrame(
     dtm.sum(axis=0).flatten(), columns=vectorizer.get_feature_names_out()
 )
-logging.info(word_occurrences)
 
 # Step 1: Create a Bigram Document-Term Matrix
 vectorizer_bigram = CountVectorizer(
@@ -55,7 +54,6 @@ dtm_bigram = vectorizer_bigram.fit_transform(all_paragraphs)
 bigram_occurrences = pd.DataFrame(
     dtm_bigram.sum(axis=0).flatten(), columns=vectorizer_bigram.get_feature_names_out()
 )
-logging.info(bigram_occurrences)
 
 # Step 1: Get the number of columns (terms) from dtm_df
 num_columns = word_occurrences.shape[1]
@@ -65,8 +63,6 @@ word_df = pd.DataFrame(np.random.uniform(0.0, 1.0, size=(90, num_columns)))
 
 # Step 3: Assign the column names of dtm_df to the new word_df
 word_df.columns = word_occurrences.columns
-
-logging.info(word_df)
 
 kaski_df = encode_kaski(word_df, bigram_occurrences)
 

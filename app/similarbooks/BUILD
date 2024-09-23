@@ -3,7 +3,6 @@ load("@py_deps//:requirements.bzl", "requirement")
 filegroup(
     name = "templates",
     srcs = [
-        "templates/index.html",
         "templates/home.html",
         "templates/detailed.html",
          "templates/not_found.html",

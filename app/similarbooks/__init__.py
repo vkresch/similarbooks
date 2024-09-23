@@ -9,47 +9,26 @@ from graphql_server.flask import GraphQLView
 from collections import UserDict
 from flask_mongoengine import MongoEngine
 from flask_simple_captcha import CAPTCHA
+from spiders.bookspider.bookspider.schema import Book, Query
 
-# from spiders.immospider.immospider.schema import Appartment, House, Query
+# from spiders.bookspider.bookspider.schema import Appartment, House, Query
 
 db = MongoEngine()
 
 simple_captcha = CAPTCHA(config=Config.CAPTCHA_CONFIG)
 
 
-def token_required(f):
-    @wraps(f)
-    def decorated_function(*args, **kwargs):
-        token = request.headers.get("X-RapidAPI-Proxy-Secret")
-        if not token:
-            return (
-                jsonify(
-                    {
-                        "message": "API key is missing! Please register one for similarbooks.net on RapidAPI!"
-                    }
-                ),
-                403,
-            )
-        if token != Config.SECRET_KEY:
-            return jsonify({"message": "Invalid API key!"}), 403
-        return f(*args, **kwargs)
-
-    return decorated_function
-
-
-# def graphql_view():
-#     schema = graphene.Schema(
-#         query=Query, types=[Appartment, House], auto_camelcase=False
-#     )
-#     # NOTE: This can be used for exporting the schema into a json file
-#     # import json
-#     # introspection_dict = schema.introspect()
-#     # with open('/tmp/schema.json', 'w') as fp:
-#     #     json.dump(introspection_dict, fp)
-#     view = GraphQLView.as_view(
-#         "graphql", schema=schema, graphiql=DEBUG, context=UserDict()
-#     )
-#     return token_required(view) if not DEBUG else view
+def graphql_view():
+    schema = graphene.Schema(query=Query, types=[Book], auto_camelcase=False)
+    # NOTE: This can be used for exporting the schema into a json file
+    # import json
+    # introspection_dict = schema.introspect()
+    # with open('/tmp/schema.json', 'w') as fp:
+    #     json.dump(introspection_dict, fp)
+    view = GraphQLView.as_view(
+        "graphql", schema=schema, graphiql=DEBUG, context=UserDict()
+    )
+    return view
 
 
 # Custom filter to extract year from date string
@@ -77,10 +56,10 @@ def create_app(config_class=Config):
     db.init_app(app)
     simple_captcha.init_app(app)
 
-    # app.add_url_rule(
-    #     "/graphql",
-    #     view_func=graphql_view(),
-    # )
+    app.add_url_rule(
+        "/graphql",
+        view_func=graphql_view(),
+    )
 
     @app.errorhandler(404)
     def page_not_found(error):

@@ -110,7 +110,7 @@
                     <th>Gleiche Immobilie(n)</th>
                     <td>
                         <ul style="list-style-type: none; margin-bottom: 0;">
-                            {% for immo_id, sreal_estate in real_estate.similar_real_estates.items() %}
+                            {% for book_id, sreal_estate in real_estate.similar_real_estates.items() %}
                                 {% if real_estate["action"] == "kaufen" %}
                                     <li>{{ sreal_estate['uptime_date'] }} | {{ "{:,.2f}".format(sreal_estate['price']) }} € | <a href='{{ sreal_estate["url"] }}' target="_blank" rel="nofollow noopener">{{ sreal_estate["spider"] }}</a></li>
                                 {% else %}
@@ -250,7 +250,7 @@
     }
 
     spider_logos = {
-        "immowelt": "https://upload.wikimedia.org/wikipedia/commons/2/26/Immowelt_2021_logo.svg",
+        "gutenberg": "https://upload.wikimedia.org/wikipedia/commons/2/26/gutenberg_2021_logo.svg",
         "kleinanzeigen": "https://themen.kleinanzeigen.de/media/files/d6/3e/d63e6861-498c-4123-a08d-6f8033055581/ka_horizontal_lightgreen_rgb.png",
         "ohnemakler": "https://pictures.immobilienscout24.de/usercontent/360d6609-e322-4b36-81a5-39dcc32f9152.PNG",
         "immoscout": "https://www.immobilien1996.de/wp-content/uploads/go-x/u/d1829517-2bcd-4906-ba38-ddd41909c406/l0,t0,w300,h168/image.png",
@@ -260,14 +260,14 @@
     // Add multiple markers
     {% if real_estate.clustered_real_estates is not none %}
         {% for marker in real_estate.clustered_real_estates %}
-            {% if real_estate["immo_id"] != '{{ marker.immo_id }}' %}
+            {% if real_estate["book_id"] != '{{ marker.book_id }}' %}
                 {% set iconOpacity = 1.0 if marker.is_active else 0.7 %}
                 {% if marker["action"] == 'kaufen' %}
-                    {% set marker_color = 'red' if marker.immo_id in real_estate.similar_real_estates else 'violet' %}
+                    {% set marker_color = 'red' if marker.book_id in real_estate.similar_real_estates else 'violet' %}
                     markers.addLayer(L.marker([{{ marker.lat }}, {{ marker.lon }}], {icon: getIcon('{{ marker_color }}'), opacity: {{ iconOpacity }}})
                     .bindPopup(
                         '<a href="{{ marker.url }}" target="_blank"><img src="' + spider_logos["{{ marker.spider }}"] + '" alt="Logo" style="width:50px;height:auto;"></a><br>' +
-                        '<a href="' + full + '/' +  estate_type +   '/{{ marker.immo_id }}/' + parameterString +'">{{ marker.title | escape | replace("\n", "\\n") }}</a>'+
+                        '<a href="' + full + '/' +  estate_type +   '/{{ marker.book_id }}/' + parameterString +'">{{ marker.title | escape | replace("\n", "\\n") }}</a>'+
                         '<br>Datum: {{ marker.uptime_date }}'+
                         '{% if marker.price is not none %}<br>Preis: {{ "{:,.2f}".format(marker.price) }} €{% endif %}'+
                         '<br>Fläche: {{ marker.square_meter }} m²'+
@@ -276,11 +276,11 @@
                         '{% if marker.rooms is not none %}<br>Zimmer: {{ marker.rooms }}{% endif %}'
                     ));
                 {% elif marker["action"] == 'mieten' %}
-                    {% set marker_color = 'red' if marker.immo_id in real_estate.similar_real_estates else 'blue' %}
+                    {% set marker_color = 'red' if marker.book_id in real_estate.similar_real_estates else 'blue' %}
                     markers.addLayer(L.marker([{{ marker.lat }}, {{ marker.lon }}], {icon: getIcon('{{ marker_color }}'), opacity: {{ iconOpacity }}})
                     .bindPopup(
                         '<a href="{{ marker.url }}" target="_blank"><img src="' + spider_logos["{{ marker.spider }}"] + '" alt="Logo" style="width:50px;height:auto;"></a><br>' +
-                        '<a href="' + full + '/' + estate_type + '/{{ marker.immo_id }}">{{ marker.title | escape | replace("\n", "\\n") }}</a>'+
+                        '<a href="' + full + '/' + estate_type + '/{{ marker.book_id }}">{{ marker.title | escape | replace("\n", "\\n") }}</a>'+
                         '<br>Datum: {{ marker.uptime_date }}'+
                         '{% if marker.rent_price is not none %}<br>Miete: {{ "{:,.2f}".format(marker.rent_price) }} €{% endif %}'+
                         '<br>Fläche: {{ marker.square_meter }} m²'+

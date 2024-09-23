@@ -15,8 +15,6 @@ import matplotlib.pyplot as plt
 from geopy.geocoders import Nominatim
 from app.similarbooks.main.constants import (
     GRAPHQL_ENDPOINT,
-    LOCATION_QUERY,
-    MIN_BMU_PROPERTY_COUNT,
 )
 from app.similarbooks.config import Config
 

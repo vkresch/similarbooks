@@ -49,7 +49,7 @@ class PropertyForm(FlaskForm):
 
 
 class SearchForm(FlaskForm):
-    immo_id = StringField("Search immo id", render_kw={"placeholder": "Immo id"})
+    book_id = StringField("Search immo id", render_kw={"placeholder": "Immo id"})
     dimnames = SelectField(
         "Dimension Names",
         choices=[
