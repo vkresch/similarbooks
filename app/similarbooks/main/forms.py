@@ -1,5 +1,3 @@
-from app.similarbooks.main.constants import BUNDESLAENDER_LIST
-
 from flask_wtf import FlaskForm
 import datetime
 from wtforms import (
@@ -46,39 +44,6 @@ class PropertyForm(FlaskForm):
         "Baujahr", validators=[DataRequired(), NumberRange(min=0)]
     )
     submit = SubmitField("Bewerten")
-
-
-class SearchForm(FlaskForm):
-    book_id = StringField("Search immo id", render_kw={"placeholder": "Immo id"})
-    dimnames = SelectField(
-        "Dimension Names",
-        choices=[
-            "cashflow",
-            "umatrix",
-            "price_matrix",
-            "rent_price_matrix",
-            "price_per_square_meter",
-            "rent_price_per_square_meter",
-            "price_per_rent_price",
-            "node_count",
-            "total_price",
-            "maintenance_price",
-            "square_meter",
-            "rooms",
-            "floor_number",
-            "energy_consumption",
-            "age",
-            "lat",
-            "lon",
-        ],
-        default="cashflow",
-    )
-    bundesland = SelectField(
-        "Bundesland",
-        choices=BUNDESLAENDER_LIST,
-        default="all",
-    )
-    submit_search = SubmitField("Search")
 
 
 class BMUForm(FlaskForm):

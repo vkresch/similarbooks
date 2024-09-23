@@ -11,8 +11,6 @@ from flask_mongoengine import MongoEngine
 from flask_simple_captcha import CAPTCHA
 from spiders.bookspider.bookspider.schema import Book, Query
 
-# from spiders.bookspider.bookspider.schema import Appartment, House, Query
-
 db = MongoEngine()
 
 simple_captcha = CAPTCHA(config=Config.CAPTCHA_CONFIG)

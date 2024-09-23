@@ -428,22 +428,3 @@ def check_similarity(node, clustered_real_estates):
         and clustered_real_estates["year_of_construction"][:4]
         == node["year_of_construction"][:4]
     )
-
-
-def get_data_from_url(
-    url,
-    sort="-uptime_date",
-    page=1,
-    equity_percentage=DEFAULT_EQUITY,
-    interest=DEFAULT_INTEREST,
-    repayment=DEFAULT_REPAYMENT,
-):
-    return query_data(
-        filter_dict=get_filter_dict(url),
-        page=page,
-        order_by=sort,
-        estate_type=get_type(url),
-        equity_percentage=equity_percentage,
-        interest=interest,
-        repayment=repayment,
-    )

@@ -24,6 +24,7 @@ py_library(
         requirement("numpy"),
         "//app/similarbooks:similarbooks_lib",
         ":flask_library",
+        "//spiders/bookspider:schemas",
         "//som:utils",
     ],
 )

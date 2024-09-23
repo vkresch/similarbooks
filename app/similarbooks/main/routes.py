@@ -1,12 +1,6 @@
 import datetime
 from app.similarbooks.main.common import cache
 from app.similarbooks.main.utils import get_param
-from app.similarbooks.main.constants import (
-    DEFAULT_INTEREST,
-    DEFAULT_REPAYMENT,
-    DEFAULT_EQUITY,
-    MIN_DATE_DISPLAY,
-)
 from urllib.parse import urlparse
 from urllib.parse import parse_qs
 import requests
