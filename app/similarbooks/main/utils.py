@@ -98,6 +98,7 @@ def get_data(
     page,
     order_by,
     estate_type,
+    detailed=False,
 ):
     CACHE_TIMEOUT = 15 * 60  # 15min
     hashed_query_string = hashlib.sha1(query_string.encode("utf-8")).hexdigest()

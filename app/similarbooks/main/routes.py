@@ -36,16 +36,29 @@ def ping():
 @main.route("/", methods=["POST", "GET"])
 def index():
     search_form = LandingSearchForm()
-    filter_dict = {}
+    books = []
     if search_form.validate_on_submit():
-        filter_dict = {"title_contains": search_form.title.data}
-    books = query_data(
-        filter_dict,
+        books = query_data(
+            {"title_contains": search_form.title.data},
+            1,
+            "-title",
+            "all_books",
+        )
+    return render_template("home.html", books=books, search_form=search_form)
+
+
+@main.route("/book/<sha>/")
+@cache.cached(timeout=60)
+def detailed_book(sha):
+    book = query_data(
+        {"sha": sha},
         1,
-        "date",
+        "-title",
         "all_books",
     )
-    return render_template("home.html", books=books, search_form=search_form)
+    if len(book) > 0:
+        return render_template("detailed.html", book=book[0])
+    return render_template("not_found.html")
 
 
 @main.route("/about")
@@ -63,7 +76,7 @@ def impressum():
 @main.route("/datenschutz")
 @cache.cached(timeout=60)
 def datenschutz():
-    return render_template("datenschutz.html", title="Datenschutz")
+    return render_template("datenschutz.html", title="Data Privacy")
 
 
 @main.route("/legal")

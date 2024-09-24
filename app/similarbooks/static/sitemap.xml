@@ -13,42 +13,7 @@
   <priority>1.00</priority>
 </url>
 <url>
-  <loc>https://www.similarbooks.net/wohnung/kaufen</loc>
-  <lastmod>2024-06-29T14:43:21+00:00</lastmod>
-  <priority>0.80</priority>
-</url>
-<url>
-  <loc>https://www.similarbooks.net/wohnung/mieten</loc>
-  <lastmod>2024-06-29T14:43:21+00:00</lastmod>
-  <priority>0.80</priority>
-</url>
-<url>
-  <loc>https://www.similarbooks.net/haus/kaufen</loc>
-  <lastmod>2024-06-29T14:43:21+00:00</lastmod>
-  <priority>0.80</priority>
-</url>
-<url>
-  <loc>https://www.similarbooks.net/haus/mieten</loc>
-  <lastmod>2024-06-29T14:43:21+00:00</lastmod>
-  <priority>0.80</priority>
-</url>
-<url>
-  <loc>https://www.similarbooks.net/login?next=%2Ffeedback</loc>
-  <lastmod>2024-06-29T14:43:21+00:00</lastmod>
-  <priority>0.80</priority>
-</url>
-<url>
   <loc>https://www.similarbooks.net/about</loc>
-  <lastmod>2024-06-29T14:43:21+00:00</lastmod>
-  <priority>0.80</priority>
-</url>
-<url>
-  <loc>https://www.similarbooks.net/login</loc>
-  <lastmod>2024-06-29T14:43:21+00:00</lastmod>
-  <priority>0.80</priority>
-</url>
-<url>
-  <loc>https://www.similarbooks.net/register</loc>
   <lastmod>2024-06-29T14:43:21+00:00</lastmod>
   <priority>0.80</priority>
 </url>
@@ -61,11 +26,6 @@
   <loc>https://www.similarbooks.net/impressum</loc>
   <lastmod>2024-06-29T14:43:21+00:00</lastmod>
   <priority>0.80</priority>
-</url>
-<url>
-  <loc>https://www.similarbooks.net/reset_password</loc>
-  <lastmod>2024-06-29T14:43:21+00:00</lastmod>
-  <priority>0.64</priority>
 </url>
 
 

@@ -1,9 +1,6 @@
 User-agent: *
 # Disallow private areas
 Disallow: /admin/
-Disallow: /login/
-Disallow: /register/
-Disallow: /account/
 
 # Allow everything else
 Allow: /

@@ -15,5 +15,9 @@ from wtforms.widgets import TextArea
 
 
 class LandingSearchForm(FlaskForm):
-    title = StringField("Title", validators=[DataRequired()])
+    title = StringField(
+        "Title",
+        validators=[DataRequired()],
+        render_kw={"placeholder": "Enter a title to search for books"},
+    )
     submit = SubmitField("Search")

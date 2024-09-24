@@ -41,6 +41,9 @@ class BookFilter(graphene.InputObjectType):
         name="author",
         description="Book has to have ONE of the provided typ",
     )
+    sha = graphene.String(
+        name="sha",
+    )
 
 
 def convert_filters(filters):

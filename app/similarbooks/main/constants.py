@@ -20,6 +20,8 @@ BOOK_QUERY = """
     edges {{
       node {{
         book_id,
+        sha,
+        summary,
         date,
         title,
         author,
