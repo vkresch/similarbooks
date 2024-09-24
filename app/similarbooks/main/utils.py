@@ -14,6 +14,7 @@ from app.similarbooks.config import Config
 from app.similarbooks.main.common import cache
 from app.similarbooks.main.constants import (
     GRAPHQL_ENDPOINT,
+    BOOK_QUERY,
 )
 
 average_name_dict = {
@@ -77,74 +78,18 @@ def get_zipcodes(search):
     return None
 
 
-def get_cached_query(
-    query_string,
-    page,
-    order_by,
-    action,
-    estate_type,
-    equity_percentage,
-    interest,
-    repayment,
-):
-    if action == "kaufen":
-        query = CACHED_KAUFEN_QUERY.format(
-            estate_type,
-            order_by,
-            page,
-            query_string,
-            equity_percentage,
-            interest,
-            repayment,
-        )
-    elif action == "mieten":
-        query = CACHED_MIETEN_QUERY.format(
-            estate_type,
-            order_by,
-            page,
-            query_string,
-        )
-    else:
-        raise Exception(f"action: {action} does not exist!")
-    return query.replace("'", '"')
-
-
 def get_query(
     query_string,
     page,
     order_by,
-    action,
     estate_type,
-    equity_percentage,
-    interest,
-    repayment,
-    count_estate=None,
-    avg_estate=None,
 ):
-    if action == "kaufen":
-        query = KAUFEN_QUERY.format(
-            estate_type,
-            order_by,
-            page,
-            query_string,
-            count_estate,
-            avg_estate,
-            equity_percentage,
-            interest,
-            repayment,
-        )
-    elif action == "mieten":
-        query = MIETEN_QUERY.format(
-            estate_type,
-            order_by,
-            page,
-            query_string,
-            count_estate,
-            avg_estate,
-        )
-    else:
-        raise Exception(f"action: {action} does not exist!")
-
+    query = BOOK_QUERY.format(
+        estate_type,
+        order_by,
+        page,
+        query_string,
+    )
     return query.replace("'", '"')
 
 
@@ -152,11 +97,7 @@ def get_data(
     query_string,
     page,
     order_by,
-    action,
     estate_type,
-    equity_percentage,
-    interest,
-    repayment,
 ):
     CACHE_TIMEOUT = 15 * 60  # 15min
     hashed_query_string = hashlib.sha1(query_string.encode("utf-8")).hexdigest()
@@ -164,47 +105,19 @@ def get_data(
         logging.warning("No estate type selected!")
         return {}, 0, 0
 
-    count_estate = (
-        "total_appartments_count"
-        if estate_type == "all_appartments"
-        else "total_houses_count"
-    )
-    count = cache.get(f"{hashed_query_string}{count_estate}")
-    avg_estate = "avg_appartments" if estate_type == "all_appartments" else "avg_houses"
-    avg_price_per_square_meter = cache.get(f"{hashed_query_string}{avg_estate}")
-
     t1_start = perf_counter()
-    cashed_query = get_cached_query(
-        query_string,
-        page,
-        order_by,
-        action,
-        estate_type,
-        equity_percentage,
-        interest,
-        repayment,
-    )
 
     query = get_query(
         query_string,
         page,
         order_by,
-        action,
         estate_type,
-        equity_percentage,
-        interest,
-        repayment,
-        count_estate,
-        avg_estate,
     )
-
-    if count is not None or avg_price_per_square_meter is not None:
-        query = cashed_query
 
     logging.debug(f"Query:\n{query}")
 
     # Make use only of the page specific string to hash a key
-    hashed_query = hashlib.sha1(cashed_query.encode("utf-8")).hexdigest()
+    hashed_query = hashlib.sha1(query.encode("utf-8")).hexdigest()
     response = cache.get(hashed_query)
     logging.debug(f"hashed_query: {hashed_query}")
     if response is None:
@@ -214,27 +127,13 @@ def get_data(
             headers={"X-RapidAPI-Proxy-Secret": Config.SECRET_KEY},
         ).json()
         cache.set(hashed_query, response, timeout=CACHE_TIMEOUT)
-    real_estate = response["data"][estate_type]["edges"]
+    books = response["data"][estate_type]["edges"]
 
-    if count is None:
-        count = response["data"][count_estate]
-        cache.set(f"{hashed_query_string}{count_estate}", count, timeout=CACHE_TIMEOUT)
-
-    # NOTE: Make sure the average is calculatable
-    if avg_price_per_square_meter is None:
-        results = response["data"][avg_estate]["edges"]
-        if len(results) > 0:
-            avg_price_per_square_meter = results[0]["node"][average_name_dict[action]]
-            cache.set(
-                f"{hashed_query_string}{avg_estate}",
-                avg_price_per_square_meter,
-                timeout=CACHE_TIMEOUT,
-            )
     logging.debug(
-        f"Queried {len(real_estate)} real estates in {(perf_counter() - t1_start):.2f} seconds from total real estates of {count}"
+        f"Queried {len(books)} real estates in {(perf_counter() - t1_start):.2f} seconds"
     )
 
-    return real_estate, count, avg_price_per_square_meter
+    return books
 
 
 def query_data(
@@ -242,9 +141,6 @@ def query_data(
     page,
     order_by,
     estate_type,
-    equity_percentage,
-    interest,
-    repayment,
 ):
     query = []
     for filter_key, filter_value in filter_dict.items():
@@ -260,11 +156,7 @@ def query_data(
         query_string,
         page,
         order_by,
-        filter_dict["action"],
         estate_type,
-        equity_percentage,
-        interest,
-        repayment,
     )
 
 

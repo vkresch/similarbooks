@@ -40,6 +40,9 @@ class BookspiderMongoDBPipeline:
         existing_item = Book.objects(book_id=item["book_id"]).first()
         if existing_item:
             # Do not save again if it exists already
+            spider.logger.info(
+                f"Book with id {item['book_id']} already saved into the database!"
+            )
             pass
         else:
             book = Book(**dict(item))

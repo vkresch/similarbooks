@@ -13,3 +13,18 @@ IGNORE_FIELDS_FOR_FILTER = [
     "order_by",
     "filters",
 ]
+
+BOOK_QUERY = """
+{{
+  {0} (order_by: '{1}', page: {2}, per_page: 100, filters: {3} ) {{
+    edges {{
+      node {{
+        book_id,
+        date,
+        title,
+        author,
+        url,
+      }}
+    }}
+  }}
+}}""".strip()

@@ -36,7 +36,7 @@ class GutenbergSpider(scrapy.Spider):
         yield Request(url)
 
     def parse(self, response):
-        urls = [f"https://www.gutenberg.org/ebooks/{i}" for i in range(1, 80000)]
+        urls = [f"https://www.gutenberg.org/ebooks/{i}" for i in range(1, 74463)]
         for url in urls:
             yield Request(url, callback=self.parse_item)
 

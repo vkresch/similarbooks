@@ -15,11 +15,10 @@ from flask import (
     jsonify,
 )
 from similarbooks.main.forms import (
-    FeedbackForm,
-    PropertyForm,
     LandingSearchForm,
 )
 from similarbooks.config import Config
+from similarbooks.main.utils import query_data
 
 VERSION = f"v{Config.VERSION_MAJOR}.{Config.VERSION_MINOR}.{Config.VERSION_PATCH}"
 
@@ -36,7 +35,17 @@ def ping():
 @main.route("/home", methods=["POST", "GET"])
 @main.route("/", methods=["POST", "GET"])
 def index():
-    return render_template("home.html")
+    search_form = LandingSearchForm()
+    filter_dict = {}
+    if search_form.validate_on_submit():
+        filter_dict = {"title_contains": search_form.title.data}
+    books = query_data(
+        filter_dict,
+        1,
+        "date",
+        "all_books",
+    )
+    return render_template("home.html", books=books, search_form=search_form)
 
 
 @main.route("/about")
