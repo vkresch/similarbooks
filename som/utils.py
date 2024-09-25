@@ -75,83 +75,84 @@ def draw_barchart(filename, hit_histogram):
 
 
 def encode_kaski(word_df, bigram_occurrences):
-    # Dimensions of the word_df (used to create feature_df)
     word_encoding_length, word_number_length = word_df.shape
-
-    # Initialize the feature DataFrame (twice the rows of word_df)
     feature_df = pd.DataFrame(
         np.zeros((word_encoding_length * 2, word_number_length)),
         columns=word_df.columns,
     )
+    logging.info("Encoding words...")
 
-    logging.info(f"Encoding words...")
-
-    # Progress bar
     word_names = word_df.columns
+    bigram_columns = bigram_occurrences.columns
+
+    # Precompute regex patterns
+    first_word_patterns = {
+        word: re.compile(rf"^{word} ", flags=re.IGNORECASE) for word in word_names
+    }
+    last_word_patterns = {
+        word: re.compile(rf" {word}$", flags=re.IGNORECASE) for word in word_names
+    }
+
     for cnames in tqdm(word_names, total=word_number_length):
-        # Match bigrams that contain the word (cnames) as the first word
+        # Match bigrams that contain the word (cnames)
         match_all = [
             bool(re.search(rf"\b{cnames}\b", bigram, flags=re.IGNORECASE))
-            for bigram in bigram_occurrences.columns
+            for bigram in bigram_columns
         ]
         all_match_bigrams = bigram_occurrences.loc[:, match_all]
 
-        # Ensure all_match_bigrams is a DataFrame, even if it contains a single column
-        if isinstance(all_match_bigrams, pd.Series):
-            all_match_bigrams = all_match_bigrams.to_frame()
-
-        # Match bigrams where 'cnames' is the first word
+        # Process first word matches
         match_names_first = [
-            bool(re.match(rf"^{cnames} ", bigram, flags=re.IGNORECASE))
+            bool(first_word_patterns[cnames].match(bigram))
             for bigram in all_match_bigrams.columns
         ]
         word_set_first = all_match_bigrams.loc[:, match_names_first]
-        if isinstance(word_set_first, pd.Series):  # Ensure DataFrame even if one column
-            word_set_first = word_set_first.to_frame()
-
         word_set_names_first = [
-            re.sub(rf"^{cnames} ", "", bigram) for bigram in word_set_first.columns
+            first_word_patterns[cnames].sub("", bigram)
+            for bigram in word_set_first.columns
         ]
-        word_sum_count_first = word_set_first.sum().sum()
 
-        word_sum_vector_first = np.zeros(word_encoding_length)
-        for word, bigram_col in zip(word_set_names_first, word_set_first.columns):
-            word_vector = (
-                word_df[word]
-                if word in word_df.columns
-                else np.zeros(word_encoding_length)
-            )
-            word_count = word_set_first[bigram_col].sum()
-            word_sum_vector_first += word_count * word_vector
+        word_sum_count_first = word_set_first.values.sum()
+        word_sum_vector_first = np.sum(
+            [
+                (
+                    word_df[word].values * word_set_first[bigram].sum()
+                    if word in word_df.columns
+                    else 0
+                )
+                for word, bigram in zip(word_set_names_first, word_set_first.columns)
+            ],
+            axis=0,
+        )
         E_first = (
             word_sum_vector_first / word_sum_count_first
             if word_sum_count_first != 0
             else np.zeros(word_encoding_length)
         )
 
-        # Match bigrams where 'cnames' is the last word
+        # Process last word matches
         match_names_last = [
-            bool(re.search(rf" {cnames}$", bigram, flags=re.IGNORECASE))
+            bool(last_word_patterns[cnames].search(bigram))
             for bigram in all_match_bigrams.columns
         ]
         word_set_last = all_match_bigrams.loc[:, match_names_last]
-        if isinstance(word_set_last, pd.Series):  # Ensure DataFrame even if one column
-            word_set_last = word_set_last.to_frame()
-
         word_set_names_last = [
-            re.sub(rf" {cnames}$", "", bigram) for bigram in word_set_last.columns
+            last_word_patterns[cnames].sub("", bigram)
+            for bigram in word_set_last.columns
         ]
-        word_sum_count_last = word_set_last.sum().sum()
 
-        word_sum_vector_last = np.zeros(word_encoding_length)
-        for word, bigram_col in zip(word_set_names_last, word_set_last.columns):
-            word_vector = (
-                word_df[word]
-                if word in word_df.columns
-                else np.zeros(word_encoding_length)
-            )
-            word_count = word_set_last[bigram_col].sum()
-            word_sum_vector_last += word_count * word_vector
+        word_sum_count_last = word_set_last.values.sum()
+        word_sum_vector_last = np.sum(
+            [
+                (
+                    word_df[word].values * word_set_last[bigram].sum()
+                    if word in word_df.columns
+                    else 0
+                )
+                for word, bigram in zip(word_set_names_last, word_set_last.columns)
+            ],
+            axis=0,
+        )
         E_last = (
             word_sum_vector_last / word_sum_count_last
             if word_sum_count_last != 0
@@ -162,6 +163,8 @@ def encode_kaski(word_df, bigram_occurrences):
         feature_df[cnames] = np.concatenate((E_first, E_last))
 
     logging.info("Finished encoding words!")
+    print(feature_df)
+    exit()
     return feature_df
 
 
@@ -213,24 +216,30 @@ def get_hit_histogram(som, dtm):
 
 
 def load_documents_list(directory):
-    logging.info(f"Loading documents ...")
+    logging.info(f"Loading documents recursively from {directory}...")
     documents = []
-    for filepath in tqdm(Path(directory).glob("*.txt")):
-        with open(filepath, "r", encoding="utf-8") as file:
-            text = file.read()
-            cleaned_text = preprocess_text(text)
-            documents.extend(cleaned_text.split("\n\n"))
+    for filepath in tqdm(Path(directory).rglob("*.txt")):
+        try:
+            with open(filepath, "r", encoding="utf-8") as file:
+                text = file.read()
+                cleaned_text = preprocess_text(text)
+                documents.extend(cleaned_text.split("\n\n"))
+        except Exception as e:
+            logging.error(f"Error reading file {filepath}: {str(e)}")
     return documents
 
 
 def load_documents_dict(directory):
-    logging.info(f"Loading documents ...")
+    logging.info(f"Loading documents recursively from {directory}...")
     documents = {}
-    for filepath in tqdm(Path(directory).glob("*.txt")):
-        with open(filepath, "r", encoding="utf-8") as file:
-            text = file.read()
-            cleaned_text = preprocess_text(text)
-            filepath = os.path.basename(filepath)
-            filename = os.path.splitext(filepath)[0]
-            documents[filename] = cleaned_text.split("\n\n")
+    for filepath in tqdm(Path(directory).rglob("*.txt")):
+        try:
+            with open(filepath, "r", encoding="utf-8") as file:
+                text = file.read()
+                cleaned_text = preprocess_text(text)
+                relative_path = os.path.relpath(filepath, directory)
+                filename = os.path.splitext(relative_path)[0]
+                documents[filename] = cleaned_text.split("\n\n")
+        except Exception as e:
+            logging.error(f"Error reading file {filepath}: {str(e)}")
     return documents
