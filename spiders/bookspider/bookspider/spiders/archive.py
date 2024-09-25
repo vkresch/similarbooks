@@ -11,11 +11,15 @@ from w3lib.html import replace_escape_chars
 import numpy as np
 import re
 import datetime
+import time
 from dateutil import parser
 import socket
 import uuid
 import math
 import json
+
+# Constants
+BASE_API_URL = "https://archive.org/advancedsearch.php"
 
 
 def fix_string(value):
@@ -29,26 +33,47 @@ def fix_string(value):
 class ArchiveSpider(scrapy.Spider):
     name = "archive"
     allowed_domains = ["archive.org"]
-    start_urls = [
-        "https://archive.org/details/texts"
-    ]  # Starting from the Texts collection
 
-    def parse(self, response):
-        # Parse the main page for links to individual books
-        book_links = response.xpath("//div[@class='item-ttl']/a/@href").extract()
-        print("book_list", book_links)
-        for book_link in book_links:
-            # Extract the book identifier from the URL (last part of the path)
-            book_identifier = book_link.split("/")[-1]
+    def start_requests(self):
+        # Specify the page range (you can adjust this to suit your needs)
+        min_page = 1
+        max_page = 1_000_000
 
-            # Use the Archive.org metadata API to get the book's metadata
-            metadata_url = f"https://archive.org/metadata/{book_identifier}"
-            yield scrapy.Request(metadata_url, callback=self.parse_item)
+        # Loop through pages and yield API requests for each page
+        for page in range(min_page, max_page + 1):
+            yield scrapy.Request(
+                url=self.build_search_url(page),
+                callback=self.parse_search_results,
+                meta={"page": page},
+            )
 
-        # Follow pagination links to the next page of results
-        next_page = response.xpath("//a[@title='Next Page']/@href").get()
-        if next_page:
-            yield response.follow(next_page, self.parse)
+    def build_search_url(self, page):
+        """Constructs the API URL for querying book data."""
+        query_params = {
+            "q": "collection:(texts) AND mediatype:(texts)",  # Search query for texts
+            "fl[]": "identifier,title",  # Fields to retrieve
+            "rows": 50,  # Number of results per page
+            "page": page,  # Page number
+            "output": "json",  # JSON output
+        }
+        query_string = "&".join(f"{k}={v}" for k, v in query_params.items())
+        return f"{BASE_API_URL}?{query_string}"
+
+    def parse_search_results(self, response):
+        # Parse JSON response from the search API
+        data = json.loads(response.text)
+
+        # Check if the response contains books
+        if "response" in data and "docs" in data["response"]:
+            books = data["response"]["docs"]
+
+            # For each book, fetch its metadata using its identifier
+            for book in books:
+                identifier = book["identifier"]
+                metadata_url = f"https://archive.org/metadata/{identifier}"
+
+                # Request the metadata for each book
+                yield scrapy.Request(metadata_url, callback=self.parse_item)
 
     def parse_metadata(self, response, l):
         # Parse the JSON response from the metadata API
@@ -67,15 +92,30 @@ class ArchiveSpider(scrapy.Spider):
 
         author = metadata.get("creator", None)
         if author:
+            if isinstance(author, list):
+                author = " ".join(author)
             l.add_value("author", fix_string(author))
 
         date_of_publish = metadata.get("date", None)
         if date_of_publish:
-            l.add_value("release", datetime.datetime.strptime(date_of_publish, "%Y"))
+            processed_date = date_of_publish
+            if len(date_of_publish) == 4:
+                processed_date = datetime.datetime.strptime(date_of_publish, "%Y")
+            elif len(date_of_publish) > 4:
+                processed_date = datetime.datetime.strptime(date_of_publish[-4:], "%Y")
+            l.add_value("release", processed_date)
 
         description = metadata.get("description", None)
         if description:
+            if isinstance(description, list):
+                description = " ".join(description)
             l.add_value("summary", fix_string(description))
+
+        subject = metadata.get("subject", None)
+        if subject:
+            if isinstance(subject, list):
+                subject = " ".join(subject)
+            l.add_value("subject", fix_string(subject))
 
         language = metadata.get("language", None)
         if language:

@@ -17,6 +17,7 @@ class BookItem(Item):
     language = Field()
     release = Field()
     isbn_10 = Field()
+    subject = Field()
 
     # Housekeeping fields
     url = Field()
