@@ -27,6 +27,9 @@ def load_file(path):
     return obj
 
 
+model_dict = {"websom": load_file(f"som/models/websom.pkl")}
+
+
 # Function to parse the desired information
 def parse_gutenberg_info(file_path):
     # Dictionary to store parsed information

@@ -78,42 +78,17 @@ def get_zipcodes(search):
     return None
 
 
-def get_query(
-    query_string,
-    page,
-    order_by,
-    estate_type,
-):
-    query = BOOK_QUERY.format(
-        estate_type,
-        order_by,
-        page,
-        query_string,
-    )
-    return query.replace("'", '"')
-
-
 def get_data(
     query_string,
-    page,
-    order_by,
-    estate_type,
-    detailed=False,
+    filter_string,
 ):
     CACHE_TIMEOUT = 15 * 60  # 15min
-    hashed_query_string = hashlib.sha1(query_string.encode("utf-8")).hexdigest()
-    if estate_type is None:
-        logging.warning("No estate type selected!")
-        return {}, 0, 0
-
+    hashed_query_string = hashlib.sha1(filter_string.encode("utf-8")).hexdigest()
     t1_start = perf_counter()
 
-    query = get_query(
-        query_string,
-        page,
-        order_by,
-        estate_type,
-    )
+    query = query_string.format(
+        filter_string,
+    ).replace("'", '"')
 
     logging.debug(f"Query:\n{query}")
 
@@ -128,20 +103,19 @@ def get_data(
             headers={"X-RapidAPI-Proxy-Secret": Config.SECRET_KEY},
         ).json()
         cache.set(hashed_query, response, timeout=CACHE_TIMEOUT)
-    books = response["data"][estate_type]["edges"]
+
+    books = response["data"]["all_books"]["edges"]
 
     logging.debug(
-        f"Queried {len(books)} real estates in {(perf_counter() - t1_start):.2f} seconds"
+        f"Queried {len(books)} books in {(perf_counter() - t1_start):.2f} seconds"
     )
 
     return books
 
 
 def query_data(
+    query_string,
     filter_dict,
-    page,
-    order_by,
-    estate_type,
 ):
     query = []
     for filter_key, filter_value in filter_dict.items():
@@ -152,12 +126,10 @@ def query_data(
                 if isinstance(filter_value, bool):
                     filter_value = f"{filter_value}".lower()
                 query.append(f"{filter_key}: {filter_value}")
-    query_string = "{" + ",".join(query) + "}"
+    filter_string = "{" + ",".join(query) + "}"
     return get_data(
         query_string,
-        page,
-        order_by,
-        estate_type,
+        filter_string,
     )
 
 

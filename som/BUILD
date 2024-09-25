@@ -1,8 +1,17 @@
 load("@py_deps//:requirements.bzl", "requirement")
 
+filegroup(
+    name = "models",
+    srcs = glob([
+        "models/*.pkl",
+    ]),
+    visibility = ["//visibility:public"],
+)
+
 py_library(
     name = "utils",
     srcs = ["Scaler.py", "utils.py"],
+    data = [":models"],
     deps = [
         requirement("geopy"),
         requirement("requests"),

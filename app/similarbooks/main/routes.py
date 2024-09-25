@@ -1,3 +1,5 @@
+import numpy as np
+import pandas as pd
 import datetime
 from app.similarbooks.main.common import cache
 from app.similarbooks.main.utils import get_param
@@ -17,8 +19,14 @@ from flask import (
 from similarbooks.main.forms import (
     LandingSearchForm,
 )
+from similarbooks.main.constants import (
+    GUTENBERG_PREFIX,
+    BOOK_QUERY,
+    DETAILED_BOOK_QUERY,
+)
 from similarbooks.config import Config
 from similarbooks.main.utils import query_data
+from som.utils import model_dict
 
 VERSION = f"v{Config.VERSION_MAJOR}.{Config.VERSION_MINOR}.{Config.VERSION_PATCH}"
 
@@ -39,10 +47,8 @@ def index():
     books = []
     if search_form.validate_on_submit():
         books = query_data(
+            BOOK_QUERY,
             {"title_contains": search_form.title.data},
-            1,
-            "-title",
-            "all_books",
         )
     return render_template("home.html", books=books, search_form=search_form)
 
@@ -51,13 +57,34 @@ def index():
 @cache.cached(timeout=60)
 def detailed_book(sha):
     book = query_data(
+        DETAILED_BOOK_QUERY,
         {"sha": sha},
-        1,
-        "-title",
-        "all_books",
     )
     if len(book) > 0:
-        return render_template("detailed.html", book=book[0])
+        book = book[0]  # Unlist the book
+        som = model_dict["websom"]
+        clean_book_id = book["node"]["book_id"].replace(GUTENBERG_PREFIX, "")
+        bmu_nodes = som.labels.get(clean_book_id)
+        matched_indices = np.any(
+            np.all(bmu_nodes == som.bmus[:, None, :], axis=2), axis=1
+        )
+        matched_list = list(pd.Series(som.labels.keys())[matched_indices])
+        prefix_matched_list = [
+            f"{GUTENBERG_PREFIX}{match}"
+            for match in matched_list
+            if match != clean_book_id
+        ]
+        similar_books = query_data(
+            BOOK_QUERY,
+            {"book_id_in": prefix_matched_list},
+        )
+        return render_template(
+            "detailed.html",
+            book=book,
+            similar_books=similar_books,
+            description=book.get("summary"),
+            title=f"{book.get('title')} by {book.get('author')}",
+        )
     return render_template("not_found.html")
 
 

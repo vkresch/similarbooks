@@ -5,6 +5,8 @@ QUERY_LIMIT = 100 if not DEBUG else 10_000_000
 # NOTE: The endpoint and cookie session needs to be adjusted on the server
 GRAPHQL_ENDPOINT = "http://127.0.0.1:8000/graphql"
 
+GUTENBERG_PREFIX = "gb_"
+
 IGNORE_FIELDS_FOR_FILTER = [
     "model",
     "document",
@@ -16,7 +18,20 @@ IGNORE_FIELDS_FOR_FILTER = [
 
 BOOK_QUERY = """
 {{
-  {0} (order_by: '{1}', page: {2}, per_page: 100, filters: {3} ) {{
+  all_books (order_by: '+title', page: 1, per_page: 100, filters: {0} ) {{
+    edges {{
+      node {{
+        sha,
+        title,
+        author,
+      }}
+    }}
+  }}
+}}""".strip()
+
+DETAILED_BOOK_QUERY = """
+{{
+  all_books (filters: {0} ) {{
     edges {{
       node {{
         book_id,
@@ -25,7 +40,6 @@ BOOK_QUERY = """
         date,
         title,
         author,
-        url,
       }}
     }}
   }}

@@ -7,6 +7,16 @@
 <h6>Summary</h6>
 <p>{{ book['node']['summary'] }}</p>
 
+
+{% if similar_books|length >0 %}
 <h6>Similar Books</h6>
+{% else %}
+<h6>No similar books found!</h6>
+{% endif %}
+<ul style="list-style-type: none;">
+    {% for sbook in similar_books %}
+        <li><a href="{{ url_for('main.detailed_book', sha=sbook['node']['sha']) }}" rel="nofollow noopener">{{ sbook['node']['title'] }}</a> by {{ sbook['node']['author'] }}</li>
+    {% endfor %}
+</ul>
 
 {% endblock %}
