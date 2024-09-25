@@ -12,6 +12,7 @@ from tqdm import tqdm  # For progress bar
 from pathlib import Path
 import som.Scaler as Scaler
 import matplotlib.pyplot as plt
+from scipy.ndimage import gaussian_filter1d
 from geopy.geocoders import Nominatim
 from app.similarbooks.main.constants import (
     GRAPHQL_ENDPOINT,
@@ -188,6 +189,16 @@ def preprocess_text(text):
     return text
 
 
+def gaussian_blur(histogram):
+    FWHM = 2
+
+    # Calculate the standard deviation for the Gaussian kernel
+    sigma = FWHM / (2 * np.sqrt(2 * np.log(2)))
+
+    # Apply Gaussian filter to blur the histogram
+    return gaussian_filter1d(histogram, sigma=sigma)
+
+
 def get_hit_histogram(som, dtm):
     rows, columns = som.umatrix.shape
     node_numbers = rows * columns
@@ -198,7 +209,7 @@ def get_hit_histogram(som, dtm):
         if bmu is not None:
             index = bmu[1] * columns + bmu[0]
             hit_histogram[index] = dtm[term]
-    return hit_histogram
+    return gaussian_blur(hit_histogram)
 
 
 def load_documents_list(directory):

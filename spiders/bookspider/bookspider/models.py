@@ -19,6 +19,7 @@ class Book(Document):
     language = StringField()
     summary = StringField()
     release = DateTimeField()
+    isbn_10 = StringField()
 
     # Housekeeping fields
     url = StringField()

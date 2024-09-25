@@ -2,6 +2,7 @@ import os
 import argparse
 from scrapy.crawler import CrawlerProcess
 from bookspider.spiders.gutenberg import GutenbergSpider
+from bookspider.spiders.archive import ArchiveSpider
 from bookspider.settings import (
     BOT_NAME,
     USER_AGENT,
@@ -25,6 +26,7 @@ def command_line_arguments():
         help="Crawler.",
         choices=[
             "gutenberg",
+            "archive",
         ],
         default="gutenberg",
         type=str,
@@ -49,7 +51,12 @@ if __name__ == "__main__":
         }
     )
 
-    crawler = GutenbergSpider
+    if args.crawler == "gutenberg":
+        crawler = GutenbergSpider
+    elif args.crawler == "archive":
+        crawler = ArchiveSpider
+    else:
+        raise Exception("No crawler selected!")
 
     c.crawl(crawler)
     c.start()

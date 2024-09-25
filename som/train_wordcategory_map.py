@@ -70,9 +70,11 @@ scaler = Scaler()
 data_train_matrix = scaler.scale(kaski_df).T
 
 logging.info(f"Data shape: {data_train_matrix.shape}")
+# Wordcategory Map 15 x 21
+# https://static.aminer.org/pdf/PDF/000/916/142/websom_self_organizing_maps_of_document_collections.pdf
 som = somoclu.Somoclu(
-    50,
-    50,
+    15,
+    21,
     compactsupport=True,
     maptype="toroid",
     verbose=2,
