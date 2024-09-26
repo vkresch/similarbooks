@@ -27,17 +27,12 @@ PARENT_DIR = Path(__file__).resolve().parent
 documents_directory = PARENT_DIR / "data/"
 documents = load_documents_list(documents_directory)
 
-# Step 2: Split each document into smaller parts (e.g., paragraphs)
-all_paragraphs = []
-for doc in documents:
-    all_paragraphs.extend(doc.split("\n\n"))  # You can adjust this splitting logic
-
-
 # Step 2: Create a Document-Term Matrix
 vectorizer = CountVectorizer(
     min_df=50, stop_words="english"
 )  # min_df=200 removes words occurring <50 times
-dtm = vectorizer.fit_transform(all_paragraphs)
+logging.info(f"Fitting monogram vectorizer ...")
+dtm = vectorizer.fit_transform(documents)
 
 # Step 4: Sum up the word occurrences across all documents
 word_occurrences = pd.DataFrame(
@@ -48,7 +43,8 @@ word_occurrences = pd.DataFrame(
 vectorizer_bigram = CountVectorizer(
     ngram_range=(2, 2), min_df=50, stop_words="english"
 )  # Set ngram_range=(2, 2) for bigrams
-dtm_bigram = vectorizer_bigram.fit_transform(all_paragraphs)
+logging.info(f"Fitting bigram vectorizer ...")
+dtm_bigram = vectorizer_bigram.fit_transform(documents)
 
 # Step 3: Sum up the bigram occurrences across all documents
 bigram_occurrences = pd.DataFrame(

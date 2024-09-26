@@ -5,6 +5,7 @@ import pickle
 import pymongo
 import logging
 import datetime
+import random
 import requests
 import pandas as pd
 import numpy as np
@@ -80,7 +81,7 @@ def encode_kaski(word_df, bigram_occurrences):
         np.zeros((word_encoding_length * 2, word_number_length)),
         columns=word_df.columns,
     )
-    logging.info("Encoding words...")
+    logging.info("Encoding words with kaski ...")
 
     word_names = word_df.columns
     bigram_columns = bigram_occurrences.columns
@@ -213,31 +214,28 @@ def get_hit_histogram(som, dtm):
     return gaussian_blur(hit_histogram)
 
 
-def load_documents_list(directory):
+def get_document_text(filepath):
+    with open(filepath, "r", encoding="utf-8") as file:
+        text = file.read()
+        return preprocess_text(text)
+
+
+def load_documents_list(directory, max_documents=40000):
     logging.info(f"Loading documents recursively from {directory}...")
-    documents = []
-    for filepath in tqdm(Path(directory).rglob("*.txt")):
-        try:
-            with open(filepath, "r", encoding="utf-8") as file:
-                text = file.read()
-                cleaned_text = preprocess_text(text)
-                documents.extend(cleaned_text.split("\n\n"))
-        except Exception as e:
-            logging.error(f"Error reading file {filepath}: {str(e)}")
+    filepaths = list(Path(directory).rglob("*.txt"))
+    random.shuffle(filepaths)
+    limited_filepaths = filepaths[:max_documents]
+    documents = [get_document_text(filepath) for filepath in tqdm(limited_filepaths)]
     return documents
 
 
-def load_documents_dict(directory):
+def load_documents_dict(directory, max_documents=40000):
     logging.info(f"Loading documents recursively from {directory}...")
-    documents = {}
-    for filepath in tqdm(Path(directory).rglob("*.txt")):
-        try:
-            with open(filepath, "r", encoding="utf-8") as file:
-                text = file.read()
-                cleaned_text = preprocess_text(text)
-                relative_path = os.path.relpath(filepath, directory)
-                filename = os.path.splitext(relative_path)[0]
-                documents[filename] = cleaned_text.split("\n\n")
-        except Exception as e:
-            logging.error(f"Error reading file {filepath}: {str(e)}")
+    filepaths = list(Path(directory).rglob("*.txt"))
+    random.shuffle(filepaths)
+    limited_filepaths = filepaths[:max_documents]
+    documents = {
+        os.path.splitext(os.path.basename(filepath))[0]: [get_document_text(filepath)]
+        for filepath in tqdm(limited_filepaths)
+    }
     return documents
