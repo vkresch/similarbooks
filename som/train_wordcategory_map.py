@@ -36,6 +36,7 @@ for doc in documents:
 # Step 3: Create the vocabulary
 # Use all paragraphs to create a vocabulary first
 vectorizer = CountVectorizer(min_df=50, stop_words="english")
+logging.info(f"Fitting monogran vectorizer ...")
 vectorizer.fit(all_paragraphs)  # Only fit the vectorizer to get the vocabulary
 vocabulary = vectorizer.vocabulary_  # Extract the vocabulary
 
@@ -52,11 +53,13 @@ chunk_size = 10000  # Adjust chunk size based on memory constraints
 dtm_chunked = []
 vectorizer_chunked = CountVectorizer(vocabulary=vocabulary, stop_words="english")
 
+logging.info(f"Chunking monogram ...")
 for chunk in getchunks(all_paragraphs, chunk_size):
     dtm_chunk = vectorizer_chunked.transform(chunk)  # Use the vocabulary in transform
     dtm_chunked.append(dtm_chunk)
 
 # Concatenate all sparse matrices to get the final DTM
+logging.info(f"Vstacking monogram ...")
 dtm = sparse.vstack(dtm_chunked)
 
 # Step 5: Sum up the word occurrences across all documents
@@ -68,6 +71,7 @@ word_occurrences = pd.DataFrame(
 vectorizer_bigram = CountVectorizer(
     ngram_range=(2, 2), min_df=50, stop_words="english", vocabulary=None
 )
+logging.info(f"Fitting bigran vectorizer ...")
 vectorizer_bigram.fit(all_paragraphs)  # Fit bigram vectorizer
 vocabulary_bigram = vectorizer_bigram.vocabulary_
 
@@ -77,6 +81,7 @@ vectorizer_bigram_chunked = CountVectorizer(
     vocabulary=vocabulary_bigram, ngram_range=(2, 2), stop_words="english"
 )
 
+logging.info(f"Chunking bigram ...")
 for chunk in getchunks(all_paragraphs, chunk_size):
     dtm_bigram_chunk = vectorizer_bigram_chunked.transform(
         chunk
@@ -84,6 +89,7 @@ for chunk in getchunks(all_paragraphs, chunk_size):
     dtm_bigram_chunked.append(dtm_bigram_chunk)
 
 # Concatenate the bigram DTMs
+logging.info(f"Vstacking bigram ...")
 dtm_bigram = sparse.vstack(dtm_bigram_chunked)
 
 # Step 7: Sum up bigram occurrences across all documents
