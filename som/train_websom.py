@@ -32,7 +32,7 @@ logging.basicConfig(
 PARENT_DIR = Path(__file__).resolve().parent
 
 # documents_directory = PARENT_DIR / "data/gutenberg_books"
-documents_directory = PARENT_DIR / "data/gutenberg_books"
+documents_directory = PARENT_DIR / "data"
 documents = load_documents_dict(documents_directory)
 
 with open(PARENT_DIR / Path(f"models/wordcategory.pkl"), "rb") as file_model:

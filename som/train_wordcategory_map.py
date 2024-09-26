@@ -25,7 +25,7 @@ logging.basicConfig(
 PARENT_DIR = Path(__file__).resolve().parent
 
 # Use a directory that contains all your text documents
-documents_directory = PARENT_DIR / "data/archive_books"
+documents_directory = PARENT_DIR / "data"
 documents = load_documents_list(documents_directory)
 
 # Step 2: Split each document into smaller parts (e.g., paragraphs)
