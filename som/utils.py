@@ -163,8 +163,6 @@ def encode_kaski(word_df, bigram_occurrences):
         feature_df[cnames] = np.concatenate((E_first, E_last))
 
     logging.info("Finished encoding words!")
-    print(feature_df)
-    exit()
     return feature_df
 
 
