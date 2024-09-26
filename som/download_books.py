@@ -1,3 +1,4 @@
+import logging
 import time
 import argparse
 import requests
@@ -6,6 +7,12 @@ from bs4 import BeautifulSoup
 import os
 
 PARENT_DIR = Path(__file__).resolve().parent
+
+logging.basicConfig(
+    format="%(asctime)s %(levelname)-8s %(message)s",
+    level=logging.INFO,
+    datefmt="%Y-%m-%d %H:%M:%S",
+)
 
 
 # Function to download a book from Project Gutenberg
@@ -22,7 +29,7 @@ def download_gutenberg_book(
 
     # Check if the book file already exists
     if os.path.exists(book_path):
-        print(f"Book {book_id} already exists. Skipping download.")
+        logging.info(f"Book {book_id} already exists. Skipping download.")
         return
 
     # First URL format to try
@@ -34,30 +41,34 @@ def download_gutenberg_book(
     try:
         response = requests.get(url_1)
         response.raise_for_status()  # Check for HTTP errors (including 404)
-        print(f"Successfully downloaded book {book_id} from {url_1}")
+        logging.info(f"Successfully downloaded book {book_id} from {url_1}")
 
     except requests.exceptions.HTTPError as http_err:
         # If it's a 404 error, retry with the second URL
         if response.status_code == 404:
-            print(f"404 error for {url_1}, retrying with {url_2}")
+            logging.info(f"404 error for {url_1}, retrying with {url_2}")
             try:
                 response = requests.get(url_2)
                 response.raise_for_status()  # Check for errors with the second URL
-                print(f"Successfully downloaded book {book_id} from {url_2}")
+                logging.info(f"Successfully downloaded book {book_id} from {url_2}")
             except requests.exceptions.HTTPError as http_err_2:
-                print(f"Failed to download book {book_id} from both URLs: {http_err_2}")
+                logging.info(
+                    f"Failed to download book {book_id} from both URLs: {http_err_2}"
+                )
                 return
         else:
-            print(f"HTTP error occurred for book {book_id} from {url_1}: {http_err}")
+            logging.info(
+                f"HTTP error occurred for book {book_id} from {url_1}: {http_err}"
+            )
             return
     except Exception as err:
-        print(f"An error occurred for book {book_id}: {err}")
+        logging.info(f"An error occurred for book {book_id}: {err}")
         return
 
     # Save the book to a text file if successful
     with open(book_path, "w", encoding="utf-8") as book_file:
         book_file.write(response.text)
-    print(f"Book {book_id} saved to {book_path}")
+    logging.info(f"Book {book_id} saved to {book_path}")
 
 
 # Step 1: Archive.org API endpoint to search for free books
@@ -77,7 +88,7 @@ def search_books(page=1):
     if response.status_code == 200:
         return response.json()
     else:
-        print("Failed to query Archive.org")
+        logging.info("Failed to query archive.org")
         return None
 
 
@@ -96,15 +107,22 @@ def get_plain_text_url(identifier):
 
 # Step 3: Download the plain text file
 def download_plain_text(text_url, save_dir, book_title):
+    file_path = os.path.join(save_dir, book_title + ".txt")
+
+    # Check if the file already exists
+    if os.path.exists(file_path):
+        logging.info(f"Book already exists: {book_title}. Skipping download.")
+        return
+
+    # If the file doesn't exist, proceed with downloading
     response = requests.get(text_url, stream=True)
     if response.status_code == 200:
-        file_path = os.path.join(save_dir, book_title + ".txt")
         with open(file_path, "wb") as f:
             for chunk in response.iter_content(1024):
                 f.write(chunk)
-        print(f"Downloaded: {book_title}")
+        logging.info(f"Downloaded: {book_title}")
     else:
-        print(f"Failed to download: {book_title}")
+        logging.info(f"Failed to download: {book_title}")
 
 
 # Step 4: Main loop to fetch and download all free books
@@ -123,7 +141,7 @@ def download_all_books(
                 title = book.get("title", identifier).replace(
                     "/", "_"
                 )  # Clean up the title for filenames
-                print(f"Processing book: {title}")
+                logging.info(f"Processing book: {title}")
 
                 # Step 2: Find the plain text URL
                 text_url = get_plain_text_url(identifier)
@@ -131,14 +149,14 @@ def download_all_books(
                     # Step 3: Download the plain text version
                     download_plain_text(text_url, save_dir, identifier)
                 else:
-                    print(f"No plain text available for {title}")
+                    logging.info(f"No plain text available for {title}")
 
                 # Step 5: Throttle requests to avoid overwhelming the server
                 time.sleep(delay)
 
         # Step 6: Move to the next page of results
         page += 1
-        print(f"Moving to page {page}")
+        logging.info(f"Moving to page {page}")
 
 
 def command_line_arguments():
@@ -166,4 +184,4 @@ if __name__ == "__main__":
         for i in range(0, 80000):
             download_gutenberg_book(f"{i}")
     elif args.website == "archive":
-        download_all_books(min_pages=1, max_pages=1_000_000)
+        download_all_books(min_pages=800, max_pages=1_000_000)
