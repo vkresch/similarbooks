@@ -13,6 +13,8 @@ logging.basicConfig(
     level=logging.INFO,
     datefmt="%Y-%m-%d %H:%M:%S",
 )
+# Scraping API endpoint
+SCRAPING_API_URL = "https://archive.org/services/search/v1/scrape"
 
 
 # Function to download a book from Project Gutenberg
@@ -92,6 +94,24 @@ def search_books(page=1):
         return None
 
 
+# Function to query the Scraping API using cursor-based pagination
+def scrape_books(query, fields, count=100, cursor=None):
+    params = {
+        "q": query,
+        "fields": fields,
+        "count": count,
+    }
+    if cursor:
+        params["cursor"] = cursor
+
+    response = requests.get(SCRAPING_API_URL, params=params)
+    if response.status_code == 200:
+        return response.json()
+    else:
+        logging.info("Failed to query Archive.org")
+        return None
+
+
 # Step 2: Get the plain text URL for each book
 def get_plain_text_url(identifier):
     metadata_url = f"https://archive.org/metadata/{identifier}"
@@ -126,21 +146,22 @@ def download_plain_text(text_url, save_dir, book_title):
 
 
 # Step 4: Main loop to fetch and download all free books
-def download_all_books(
-    save_dir=PARENT_DIR / Path(f"data/archive_books"), min_pages=1, max_pages=5, delay=1
-):
+def download_all_books(save_dir=PARENT_DIR / Path(f"data/archive_books"), delay=1):
     if not os.path.exists(save_dir):
         os.makedirs(save_dir)
 
-    page = min_pages
-    while page <= max_pages:
-        books = search_books(page)
-        if books and "response" in books and "docs" in books["response"]:
-            for book in books["response"]["docs"]:
+    query = "collection:(texts) AND mediatype:(texts)"
+    fields = "identifier,title"
+    count = 100  # Number of results to return per query
+    cursor = None  # Initialize cursor
+
+    while True:
+        # Fetch books using the Scraping API
+        result = scrape_books(query=query, fields=fields, count=count, cursor=cursor)
+        if result and "items" in result:
+            for book in result["items"]:
                 identifier = book["identifier"]
-                title = book.get("title", identifier).replace(
-                    "/", "_"
-                )  # Clean up the title for filenames
+                title = book.get("title", identifier).replace("/", "_")
                 logging.info(f"Processing book: {title}")
 
                 # Step 2: Find the plain text URL
@@ -154,9 +175,13 @@ def download_all_books(
                 # Step 5: Throttle requests to avoid overwhelming the server
                 time.sleep(delay)
 
-        # Step 6: Move to the next page of results
-        page += 1
-        logging.info(f"Moving to page {page}")
+            # Update cursor for the next batch of results
+            cursor = result.get("cursor")
+            if not cursor:
+                break  # Stop if there are no more results
+        else:
+            logging.info("No more results or failed to fetch results.")
+            break
 
 
 def command_line_arguments():
@@ -184,4 +209,4 @@ if __name__ == "__main__":
         for i in range(0, 80000):
             download_gutenberg_book(f"{i}")
     elif args.website == "archive":
-        download_all_books(min_pages=800, max_pages=1_000_000)
+        download_all_books()
