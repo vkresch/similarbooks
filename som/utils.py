@@ -12,14 +12,17 @@ from tqdm import tqdm  # For progress bar
 from pathlib import Path
 import som.Scaler as Scaler
 import matplotlib.pyplot as plt
+from sklearn.feature_extraction.text import CountVectorizer
 from scipy.ndimage import gaussian_filter1d
-from geopy.geocoders import Nominatim
+from scipy.sparse import csr_matrix, lil_matrix
+from joblib import Parallel, delayed
 from app.similarbooks.main.constants import (
     GRAPHQL_ENDPOINT,
 )
 from app.similarbooks.config import Config
 
 PARENT_DIR = Path(__file__).resolve().parent
+BATCH_SIZE = 1000  # Adjust this based on your available memory
 
 
 def load_file(path):
@@ -163,8 +166,6 @@ def encode_kaski(word_df, bigram_occurrences):
         feature_df[cnames] = np.concatenate((E_first, E_last))
 
     logging.info("Finished encoding words!")
-    print(feature_df)
-    exit()
     return feature_df
 
 
@@ -243,3 +244,53 @@ def load_documents_dict(directory):
         except Exception as e:
             logging.error(f"Error reading file {filepath}: {str(e)}")
     return documents
+
+
+def process_batch(batch, ngram_range=(1, 1), min_df=1):
+    vectorizer = CountVectorizer(
+        ngram_range=ngram_range, min_df=min_df, stop_words="english"
+    )
+    dtm = vectorizer.fit_transform(batch)
+    return dtm, vectorizer.get_feature_names_out()
+
+
+def process_documents(documents_directory, ngram_range=(1, 1), min_df=1):
+    documents = load_documents_list(documents_directory)
+
+    # Process documents in parallel batches
+    results = Parallel(n_jobs=-1)(
+        delayed(process_batch)(documents[i : i + BATCH_SIZE], ngram_range, min_df)
+        for i in range(0, len(documents), BATCH_SIZE)
+    )
+
+    # Get all unique features across all batches
+    all_features = sorted(
+        set(feature for _, features in results for feature in features)
+    )
+    feature_to_index = {feature: i for i, feature in enumerate(all_features)}
+
+    # Create a new DTM with all unique features using lil_matrix
+    num_documents = len(documents)
+    num_features = len(all_features)
+    dtm = lil_matrix((num_documents, num_features), dtype=np.int64)
+
+    # Fill the DTM with data from each batch
+    start = 0
+    for batch_dtm, batch_features in results:
+        end = start + batch_dtm.shape[0]
+        for i, feature in enumerate(batch_features):
+            j = feature_to_index[feature]
+            dtm[start:end, j] = batch_dtm[:, i].toarray()
+        start = end
+
+    # Convert to csr_matrix for efficient computation
+    return dtm.tocsr(), np.array(all_features)
+
+
+def filter_rare_terms(dtm, feature_names, min_df=50):
+    """Filter out terms that appear less than min_df times."""
+    term_counts = np.asarray(dtm.sum(axis=0)).flatten()
+    keep_terms = term_counts >= min_df
+    filtered_dtm = dtm[:, keep_terms]
+    filtered_features = feature_names[keep_terms]
+    return filtered_dtm, filtered_features
