@@ -38,6 +38,7 @@ documents = load_documents_dict(documents_directory)
 with open(PARENT_DIR / Path(f"models/wordcategory.pkl"), "rb") as file_model:
     wordcategory_som = pickle.load(file_model)
 
+logging.info(f"Generating hit histogram ...")
 dtm_dict = {}
 hit_data = []  # To collect rows for hit_df
 for filename, text in tqdm(documents.items()):
