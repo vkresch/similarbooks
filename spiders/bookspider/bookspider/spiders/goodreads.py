@@ -42,6 +42,8 @@ class GoodreadsSpider(scrapy.Spider):
 
     def metadata(self, response, l, root):
         work_data = root.get("Work")
+        if work_data is None:
+            return
         work_details = work_data.get("details")
 
         release_ms = work_details.get("publicationTime")
@@ -112,7 +114,7 @@ class GoodreadsSpider(scrapy.Spider):
 
             series_position = book_series[0].get("userPosition")
             if series_position:
-                l.add_value("series_position", int(series_position))
+                l.add_value("series_position", series_position)
 
         is_series = book_data.get("imageUrl")
         if is_series:
@@ -142,7 +144,10 @@ class GoodreadsSpider(scrapy.Spider):
             l.add_value("format", book_format)
 
         # Author Data
-        author_data = root.get("Contributor")
+        contributor_key = (
+            book_data.get("primaryContributorEdge").get("node").get("__ref")
+        )
+        author_data = root.get(contributor_key)
         author = author_data.get("name")
         if author:
             l.add_value("author", author)
@@ -171,9 +176,16 @@ class GoodreadsSpider(scrapy.Spider):
 
         # Book Links
         links = book_data.get("links({})")
-        secondary_affiliate_links = links.get("primaryAffiliateLink")
-        if secondary_affiliate_links:
-            kindle_link = secondary_affiliate_links.get("url")
+        primary_affiliate_link = links.get("primaryAffiliateLink")
+        if primary_affiliate_link:
+            kindle_link = primary_affiliate_link.get("url")
+            if kindle_link:
+                if primary_affiliate_link.get("__typename") == "KindleLink":
+                    l.add_value("kindle_link", kindle_link)
+                else:
+                    if primary_affiliate_link.get("name") == "Amazon":
+                        l.add_value("amazon_link", kindle_link)
+
         secondary_affiliate_links = links.get("secondaryAffiliateLinks")
         if len(secondary_affiliate_links) > 0:
             for link in secondary_affiliate_links:
@@ -218,7 +230,7 @@ class GoodreadsSpider(scrapy.Spider):
         l = ItemLoader(item=BookItem(), response=response)
         l.default_output_processor = TakeFirst()
         json_text = response.xpath("//*[@id='__NEXT_DATA__']/text()").get()
-        json_text_cleaned = re.sub(r'(:kca://[^"]+)', "", json_text)
+        json_text_cleaned = re.sub(r'(?<!Contributor)(:kca://[^"]+)', "", json_text)
         data = json.loads(json_text_cleaned)
         root = data.get("props").get("pageProps").get("apolloState")
         if root is None:
@@ -226,5 +238,9 @@ class GoodreadsSpider(scrapy.Spider):
             return  # Skips the site without failing
 
         l = self.metadata(response, l, root)
+
+        if l is None:
+            return
+
         l = self.housekeeping(response, l)
         return l.load_item()

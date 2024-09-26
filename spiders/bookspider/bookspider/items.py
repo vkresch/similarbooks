@@ -4,6 +4,7 @@
 # https://docs.scrapy.org/en/latest/topics/items.html
 
 from scrapy.item import Item, Field
+from scrapy.loader.processors import Identity
 
 
 class BookItem(Item):
@@ -19,7 +20,7 @@ class BookItem(Item):
     credits = Field()
     summary = Field()
     image_url = Field()
-    genres = Field()
+    genres = Field(output_processor=Identity())
     num_pages = Field()
     format = Field()
     language = Field()

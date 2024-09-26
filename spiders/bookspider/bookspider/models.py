@@ -23,14 +23,14 @@ class Book(Document):
     language = StringField()
     summary = StringField()
     image_url = StringField()
-    genres = ListField(StringField)
+    genres = ListField()
     num_pages = IntField()
     format = StringField()
     release = DateTimeField()
     isbn_10 = StringField()
     subject = StringField()
     web_url = StringField()
-    series_position = IntField()
+    series_position = StringField()
     is_series = BooleanField()
 
     # Stats
