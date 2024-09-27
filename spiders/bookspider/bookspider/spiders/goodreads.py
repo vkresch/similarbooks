@@ -40,11 +40,9 @@ class GoodreadsSpider(scrapy.Spider):
         yield Request(url)
 
     def parse(self, response):
-        urls = [
-            f"https://www.goodreads.com/book/show/{i}"
-            for i in range(1, GOODREADS_BOOK_COUNT)
-        ]
-        for url in urls:
+        # Instead of building a massive list, iterate and yield URLs dynamically
+        for i in range(1, GOODREADS_BOOK_COUNT):
+            url = f"https://www.goodreads.com/book/show/{i}"
             yield Request(url, callback=self.parse_item)
 
     def metadata(self, response, l, root):
