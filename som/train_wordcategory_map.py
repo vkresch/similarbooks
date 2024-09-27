@@ -9,11 +9,12 @@ from Scaler import Scaler
 from time import perf_counter
 from pathlib import Path
 import pickle
-from som.utils import encode_kaski, preprocess_text, load_documents_list
-
-import numpy as np
-import pandas as pd
-
+from som.utils import (
+    encode_kaski,
+    preprocess_text,
+    load_documents_list,
+    query_training_data,
+)
 
 logging.basicConfig(
     format="%(asctime)s %(levelname)-8s %(message)s",
@@ -24,7 +25,7 @@ logging.basicConfig(
 PARENT_DIR = Path(__file__).resolve().parent
 
 if os.path.exists(PARENT_DIR / Path(f"models/word_occurrences.pkl")) and os.path.exists(
-    PARENT_DIR / Path(f"models/word_occbigram_occurrencesurrences.pkl")
+    PARENT_DIR / Path(f"models/bigram_occurrences.pkl")
 ):
     logging.info(f"Loading already processed monogram and bigram dtm ...")
     with open(PARENT_DIR / Path(f"models/word_occurrences.pkl"), "rb") as file_model:
@@ -33,18 +34,19 @@ if os.path.exists(PARENT_DIR / Path(f"models/word_occurrences.pkl")) and os.path
     with open(PARENT_DIR / Path(f"models/bigram_occurrences.pkl"), "rb") as file_model:
         bigram_occurrences = pickle.load(file_model)
 else:
-    # Use a directory that contains all your text documents
-    documents_directory = PARENT_DIR / "data/"
-    documents = load_documents_list(documents_directory)
+    summaries_dict = query_training_data(limited=False)
+
+    # Extract the summaries into a list
+    summaries = [item.get("node").get("summary") for item in summaries_dict]
 
     # Step 2: Create a Document-Term Matrix
     vectorizer = CountVectorizer(
         min_df=50, stop_words="english"
     )  # min_df=50 removes words occurring <50 times
     logging.info(f"Fitting monogram vectorizer ...")
-    dtm = vectorizer.fit_transform(documents)
+    dtm = vectorizer.fit_transform(summaries)
 
-    # Step 4: Sum up the word occurrences across all documents
+    # Step 4: Sum up the word occurrences across all summaries
     word_occurrences = pd.DataFrame(
         dtm.sum(axis=0).flatten(), columns=vectorizer.get_feature_names_out()
     )
@@ -57,9 +59,9 @@ else:
         ngram_range=(2, 2), min_df=50, stop_words="english"
     )  # Set ngram_range=(2, 2) for bigrams
     logging.info(f"Fitting bigram vectorizer ...")
-    dtm_bigram = vectorizer_bigram.fit_transform(documents)
+    dtm_bigram = vectorizer_bigram.fit_transform(summaries)
 
-    # Step 3: Sum up the bigram occurrences across all documents
+    # Step 3: Sum up the bigram occurrences across all summaries
     bigram_occurrences = pd.DataFrame(
         dtm_bigram.sum(axis=0).flatten(),
         columns=vectorizer_bigram.get_feature_names_out(),

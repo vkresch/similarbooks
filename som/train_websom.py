@@ -32,8 +32,6 @@ logging.basicConfig(
 
 PARENT_DIR = Path(__file__).resolve().parent
 
-summaries = query_training_data()
-
 with open(PARENT_DIR / Path(f"models/wordcategory.pkl"), "rb") as file_model:
     wordcategory_som = pickle.load(file_model)
 
@@ -43,6 +41,7 @@ if os.path.exists(PARENT_DIR / Path(f"models/hit_df.pkl")):
         hit_df = pickle.load(file_model)
 else:
     logging.info(f"Generating hit histogram ...")
+    summaries = query_training_data(limited=False)
     dtm_dict = {}
     hit_data = []  # To collect rows for hit_df
     for book in tqdm(summaries):

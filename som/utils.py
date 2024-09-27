@@ -242,24 +242,43 @@ def load_documents_dict(directory, max_documents=40000):
 
 
 TRAIN_SOM_QUERY = """
-{
-  all_books (filters: {summary_exists: true}, per_page: 500) {
-    edges {
-      node {
+{{
+  all_books (filters: {0}, per_page: {1}) {{
+    edges {{
+      node {{
         book_id,
         summary,
-      }
-    }
-  }
-}""".strip()
+      }}
+    }}
+  }}
+}}""".strip()
+
+UNLIMITED_TRAIN_SOM_QUERY = """
+{{
+  all_books (filters: {0}) {{
+    edges {{
+      node {{
+        book_id,
+        summary,
+      }}
+    }}
+  }}
+}}""".strip()
 
 
-def query_training_data():
+def query_training_data(per_page=500, limited=True):
     logging.info("Getting data ...")
-    logging.info(f"Query: {TRAIN_SOM_QUERY}")
+    query = (
+        TRAIN_SOM_QUERY.format("{summary_exists: true}", per_page).replace("'", '"')
+        if limited
+        else UNLIMITED_TRAIN_SOM_QUERY.format("{summary_exists: true}").replace(
+            "'", '"'
+        )
+    )
+    logging.info(f"Query: {query}")
     response = requests.post(
         url=GRAPHQL_ENDPOINT,
-        json={"query": TRAIN_SOM_QUERY},
+        json={"query": query},
     ).json()
     books = response["data"]["all_books"]["edges"]
     if len(books) == 0:
