@@ -49,6 +49,7 @@ class GoodreadsSpider(scrapy.Spider):
 
     def metadata(self, response, l, root):
         work_data = root.get("Work")
+        book_data = root.get("Book")
         if work_data is None:
             return
         work_details = work_data.get("details")
@@ -63,6 +64,10 @@ class GoodreadsSpider(scrapy.Spider):
         title = work_details.get("originalTitle")
         if title:
             l.add_value("title", title)
+        else:
+            title = book_data.get("title")
+            if title:
+                l.add_value("title", title)
 
         web_url = work_details.get("webUrl")
         if web_url:
@@ -106,7 +111,6 @@ class GoodreadsSpider(scrapy.Spider):
             l.add_value("text_reviews_count", text_reviews_count)
 
         # General Book Info
-        book_data = root.get("Book")
         summary = book_data.get("description")
         if summary:
             l.add_value("summary", summary)
