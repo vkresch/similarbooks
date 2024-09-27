@@ -26,6 +26,10 @@ def fix_string(value):
     return value
 
 
+# Source: https://en.wikipedia.org/wiki/Goodreads
+GOODREADS_BOOK_COUNT = 10_000_000
+
+
 class GoodreadsSpider(scrapy.Spider):
     name = "goodreads"
     allowed_domains = ["web", "goodreads.com"]
@@ -36,12 +40,16 @@ class GoodreadsSpider(scrapy.Spider):
         yield Request(url)
 
     def parse(self, response):
-        urls = [f"https://www.goodreads.com/book/show/{i}" for i in range(1, 74463)]
+        urls = [
+            f"https://www.goodreads.com/book/show/{i}"
+            for i in range(1, GOODREADS_BOOK_COUNT)
+        ]
         for url in urls:
             yield Request(url, callback=self.parse_item)
 
     def metadata(self, response, l, root):
         work_data = root.get("Work")
+        book_data = root.get("Book")
         if work_data is None:
             return
         work_details = work_data.get("details")
@@ -56,6 +64,10 @@ class GoodreadsSpider(scrapy.Spider):
         title = work_details.get("originalTitle")
         if title:
             l.add_value("title", title)
+        else:
+            title = book_data.get("title")
+            if title:
+                l.add_value("title", title)
 
         web_url = work_details.get("webUrl")
         if web_url:
@@ -99,7 +111,6 @@ class GoodreadsSpider(scrapy.Spider):
             l.add_value("text_reviews_count", text_reviews_count)
 
         # General Book Info
-        book_data = root.get("Book")
         summary = book_data.get("description")
         if summary:
             l.add_value("summary", summary)

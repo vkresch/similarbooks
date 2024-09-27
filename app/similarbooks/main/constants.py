@@ -18,7 +18,7 @@ IGNORE_FIELDS_FOR_FILTER = [
 
 BOOK_QUERY = """
 {{
-  all_books (order_by: '+title', page: 1, per_page: 100, filters: {0} ) {{
+  all_books (order_by: '+title', page: 1, per_page: 20, filters: {0} ) {{
     edges {{
       node {{
         sha,

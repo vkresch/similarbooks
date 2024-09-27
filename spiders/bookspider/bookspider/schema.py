@@ -7,6 +7,8 @@ from .models import Book as BookModel
 
 
 class Book(MongoengineObjectType):
+    genres = graphene.List(graphene.String)
+
     class Meta:
         description = "Book"
         model = BookModel
@@ -37,12 +39,18 @@ class BookFilter(graphene.InputObjectType):
         name="title_contains",
         description="Books has to have ONE of the provided city",
     )
+    summary__exists = graphene.Boolean(
+        name="summary_exists",
+    )
     author = graphene.String(
         name="author",
         description="Book has to have ONE of the provided typ",
     )
     sha = graphene.String(
         name="sha",
+    )
+    spider = graphene.String(
+        name="spider",
     )
 
 

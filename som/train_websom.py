@@ -16,6 +16,7 @@ from som.utils import (
     load_documents_dict,
     get_hit_histogram,
     draw_barchart,
+    query_training_data,
 )
 import matplotlib.pyplot as plt
 
@@ -31,61 +32,73 @@ logging.basicConfig(
 
 PARENT_DIR = Path(__file__).resolve().parent
 
-# documents_directory = PARENT_DIR / "data/gutenberg_books"
-documents_directory = PARENT_DIR / "data"
-documents = load_documents_dict(documents_directory)
-
 with open(PARENT_DIR / Path(f"models/wordcategory.pkl"), "rb") as file_model:
     wordcategory_som = pickle.load(file_model)
 
-logging.info(f"Generating hit histogram ...")
-dtm_dict = {}
-hit_data = []  # To collect rows for hit_df
-for filename, text in tqdm(documents.items()):
-    # Vectorize the text using CountVectorizer
-    vectorizer = CountVectorizer(
-        min_df=1, stop_words="english"
-    )  # Adjust min_df to remove infrequent words if necessary
+if os.path.exists(PARENT_DIR / Path(f"models/hit_df.pkl")):
+    logging.info(f"Loading already processed hit_df ...")
+    with open(PARENT_DIR / Path(f"models/hit_df.pkl"), "rb") as file_model:
+        hit_df = pickle.load(file_model)
+else:
+    logging.info(f"Generating hit histogram ...")
+    summaries = query_training_data(limited=False)
+    dtm_dict = {}
+    hit_data = []  # To collect rows for hit_df
+    for book in tqdm(summaries):
+        # Vectorize the text using CountVectorizer
+        vectorizer = CountVectorizer(
+            min_df=1, stop_words="english"
+        )  # Adjust min_df to remove infrequent words if necessary
 
-    # Generate document-term matrix
-    dtm = vectorizer.fit_transform(text)  # text should be a single string, hence [text]
+        # Generate document-term matrix
+        dtm = vectorizer.fit_transform(
+            [book.get("node").get("summary")]
+        )  # text should be a single string, hence [text]
 
-    # Store the vectorizer and sparse matrix
-    dtm_dict[filename] = {"vectorizer": vectorizer, "matrix": dtm}
+        # Store the vectorizer and sparse matrix
+        dtm_dict[book.get("node").get("book_id")] = {
+            "vectorizer": vectorizer,
+            "matrix": dtm,
+        }
 
-    # Sum word occurrences across the document and keep sparse format
-    word_occurrences = pd.DataFrame(
-        dtm.sum(axis=0).A1,  # A1 gives a flat dense array from sparse matrix
-        index=vectorizer.get_feature_names_out(),
-        columns=[filename],  # Column for the filename to track the document
-    ).T  # Transpose to make words columns, filename as row
+        # Sum word occurrences across the document and keep sparse format
+        word_occurrences = pd.DataFrame(
+            dtm.sum(axis=0).A1,  # A1 gives a flat dense array from sparse matrix
+            index=vectorizer.get_feature_names_out(),
+            columns=[
+                book.get("node").get("book_id")
+            ],  # Column for the filename to track the document
+        ).T  # Transpose to make words columns, filename as row
 
-    # Compute the hit histogram using your custom function
-    hit_histogram = get_hit_histogram(wordcategory_som, word_occurrences)
-    # draw_barchart(filename, hit_histogram)
+        # Compute the hit histogram using your custom function
+        hit_histogram = get_hit_histogram(wordcategory_som, word_occurrences)
+        # draw_barchart(filename, hit_histogram)
 
-    # Ensure hit_histogram is a DataFrame
-    if isinstance(hit_histogram, np.ndarray):
-        hit_histogram = pd.DataFrame(
-            [hit_histogram]
-        )  # Convert array to DataFrame and use a list to create one row
+        # Ensure hit_histogram is a DataFrame
+        if isinstance(hit_histogram, np.ndarray):
+            hit_histogram = pd.DataFrame(
+                [hit_histogram]
+            )  # Convert array to DataFrame and use a list to create one row
 
-    # Add the filename as the index of the hit_histogram DataFrame
-    hit_histogram.index = [filename]
+        # Add the filename as the index of the hit_histogram DataFrame
+        hit_histogram.index = [book.get("node").get("book_id")]
 
-    # Append the hit_histogram DataFrame to hit_data
-    hit_data.append(hit_histogram)
+        # Append the hit_histogram DataFrame to hit_data
+        hit_data.append(hit_histogram)
 
-# Concatenate all hit_histogram DataFrames into a single DataFrame
-hit_df = pd.concat(hit_data)
+    # Concatenate all hit_histogram DataFrames into a single DataFrame
+    hit_df = pd.concat(hit_data)
+
+    with open(PARENT_DIR / Path(f"models/hit_df.pkl"), "wb") as file_model:
+        pickle.dump(hit_df, file_model, pickle.HIGHEST_PROTOCOL)
 
 scaler = Scaler()
 train_data = scaler.scale(hit_df.T).T
 
 logging.info(f"Data shape: {train_data.shape}")
 som = somoclu.Somoclu(
-    60,
-    30,
+    10,
+    10,
     compactsupport=True,
     maptype="toroid",
     verbose=2,

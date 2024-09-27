@@ -14,7 +14,6 @@ from app.similarbooks.config import Config
 from app.similarbooks.main.common import cache
 from app.similarbooks.main.constants import (
     GRAPHQL_ENDPOINT,
-    BOOK_QUERY,
 )
 
 average_name_dict = {

@@ -21,14 +21,14 @@
     <!-- Required meta tags -->
     <meta charset="utf-8">
     <meta name="viewport" content="width=device-width, initial-scale=1, shrink-to-fit=no">
-    <meta name="description" content="{% if description %}{{ description }}{% else %}Welcome to similarbooks.net, your personalized book discovery platform! Our recommendation system helps you find books similar to the ones you already love. Simply enter a book title, and we'll suggest titles with matching themes, genres, writing styles, or even author vibes. Whether you're a fan of gripping thrillers, cozy romances, or thought-provoking non-fiction, similarbooks.net makes it easy to explore new reads that fit your tastes. Perfect for bookworms seeking their next great read or those looking to dive deeper into their favorite genres. Discover your next favorite book today!{% endif %}">
+    <meta name="description" content="{% if description %}{{ description }}{% else %}Welcome to findsimilarbooks.com, your personalized book discovery platform! Our recommendation system helps you find books similar to the ones you already love. Simply enter a book title, and we'll suggest titles with matching themes, genres, writing styles, or even author vibes. Whether you're a fan of gripping thrillers, cozy romances, or thought-provoking non-fiction, findsimilarbooks.com makes it easy to explore new reads that fit your tastes. Perfect for bookworms seeking their next great read or those looking to dive deeper into their favorite genres. Discover your next favorite book today!{% endif %}">
     <meta property="og:title" content="{% if title %}similarbooks - {{ title }}{% else %}similarbooks{% endif %}">
-    <meta property="og:description" content="{% if description %}{{ description }}{% else %}Welcome to similarbooks.net, your personalized book discovery platform! Our recommendation system helps you find books similar to the ones you already love. Simply enter a book title, and we'll suggest titles with matching themes, genres, writing styles, or even author vibes. Whether you're a fan of gripping thrillers, cozy romances, or thought-provoking non-fiction, similarbooks.net makes it easy to explore new reads that fit your tastes. Perfect for bookworms seeking their next great read or those looking to dive deeper into their favorite genres. Discover your next favorite book today!{% endif %}">
-    <meta name="keywords" content="similar books, book recommendations, find similar books, book discovery, book suggestion, personalized book recommendations, book search, book finder, book recommendation engine, similar reads, next book to read, book recommendation system, book genres, similar authors, find new books, discover books, similarbooks.net">
+    <meta property="og:description" content="{% if description %}{{ description }}{% else %}Welcome to findsimilarbooks.com, your personalized book discovery platform! Our recommendation system helps you find books similar to the ones you already love. Simply enter a book title, and we'll suggest titles with matching themes, genres, writing styles, or even author vibes. Whether you're a fan of gripping thrillers, cozy romances, or thought-provoking non-fiction, findsimilarbooks.com makes it easy to explore new reads that fit your tastes. Perfect for bookworms seeking their next great read or those looking to dive deeper into their favorite genres. Discover your next favorite book today!{% endif %}">
+    <meta name="keywords" content="similar books, book recommendations, find similar books, book discovery, book suggestion, personalized book recommendations, book search, book finder, book recommendation engine, similar reads, next book to read, book recommendation system, book genres, similar authors, find new books, discover books, findsimilarbooks.com">
     {% if title %}
-        <title>Similar Books - {{ title }}</title>
+        <title>Find Similar Books - {{ title }}</title>
     {% else %}
-        <title>Similar Books</title>
+        <title>Find Similar Books</title>
     {% endif %}
 
     <!--Inter UI font-->
@@ -60,7 +60,7 @@
     <div class="container-fluid">
         <nav class="navbar navbar-expand-md navbar-dark bg-dark">
             <a class="navbar-brand heading-black" href="/">
-                Similar Books
+                Find Similar Books
             </a>
             <button class="navbar-toggler" type="button" data-toggle="collapse" data-target="#navbarCollapse" aria-controls="navbarCollapse" aria-expanded="false" aria-label="Toggle navigation">
                 <span class="navbar-toggler-icon"></span>
@@ -119,7 +119,7 @@
                 </ul>
             </div>
             <div class="col-sm-2">
-                <h5>Rechtliches</h5>
+                <h5>Legal</h5>
                 <ul class="list-unstyled">
                     <li><a href="{{ url_for('main.legal') }}">Terms of Use</a></li>
                     <li><a href="{{ url_for('main.impressum') }}">Imprint</a></li>

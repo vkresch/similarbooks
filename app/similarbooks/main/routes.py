@@ -20,7 +20,6 @@ from similarbooks.main.forms import (
     LandingSearchForm,
 )
 from similarbooks.main.constants import (
-    GUTENBERG_PREFIX,
     BOOK_QUERY,
     DETAILED_BOOK_QUERY,
 )
@@ -48,7 +47,7 @@ def index():
     if search_form.validate_on_submit():
         books = query_data(
             BOOK_QUERY,
-            {"title_contains": search_form.title.data},
+            {"title_contains": search_form.title.data, "summary_exists": True},
         )
     return render_template("home.html", books=books, search_form=search_form)
 
@@ -63,20 +62,18 @@ def detailed_book(sha):
     if len(book) > 0:
         book = book[0]  # Unlist the book
         som = model_dict["websom"]
-        clean_book_id = book["node"]["book_id"].replace(GUTENBERG_PREFIX, "")
+        clean_book_id = book["node"]["book_id"]
         bmu_nodes = som.labels.get(clean_book_id)
         matched_indices = np.any(
             np.all(bmu_nodes == som.bmus[:, None, :], axis=2), axis=1
         )
         matched_list = list(pd.Series(som.labels.keys())[matched_indices])
         prefix_matched_list = [
-            f"{GUTENBERG_PREFIX}{match}"
-            for match in matched_list
-            if match != clean_book_id
+            match for match in matched_list if match != clean_book_id
         ]
         similar_books = query_data(
             BOOK_QUERY,
-            {"book_id_in": prefix_matched_list},
+            {"book_id_in": prefix_matched_list, "summary_exists": True},
         )
         return render_template(
             "detailed.html",
