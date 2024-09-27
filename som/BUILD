@@ -17,6 +17,7 @@ py_library(
         requirement("requests"),
         requirement("scikit-learn"),
         requirement("pymongo"),
+        requirement("tqdm"),
         "//app/similarbooks:similarbooks_config",
     ],
     visibility = ["//visibility:public"],
