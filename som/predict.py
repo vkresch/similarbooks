@@ -8,7 +8,7 @@ import dash
 from dash import dcc, html
 from dash.dependencies import Input, Output
 from dash import dash_table
-from som.utils import parse_gutenberg_info
+from som.utils import parse_gutenberg_info, query_debug_display
 
 PARENT_DIR = Path(__file__).resolve().parent
 
@@ -105,13 +105,8 @@ def display_hover_data(hoverData):
             np.all(bmu_nodes == som.bmus[:, None, :], axis=2), axis=1
         )
         matched_list = list(pd.Series(som.labels.keys())[matched_indices])
-
-        metadata = [
-            parse_gutenberg_info(PARENT_DIR / Path(f"data/gutenberg_books/{match}.txt"))
-            for match in matched_list
-        ]
-
-        metadata_df = pd.DataFrame(metadata)
+        metadata = query_debug_display(matched_list)
+        metadata_df = pd.json_normalize(metadata)
 
         # Return a Dash DataTable with the metadata
         return dash_table.DataTable(

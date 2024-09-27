@@ -14,7 +14,7 @@ class Config:
         "host": f"mongodb://{MONGODB_SIMILARBOOKS_USER}:{MONGODB_SIMILARBOOKS_PWD}@{MONGODB_SIMILARBOOKS_URL}:27017/similarbooks?authMechanism=DEFAULT&authSource=similarbooks&tls=true&tlsCAFile=%2Fetc%2Fssl%2Fmongodb%2Fmongodb.crt&tlsCertificateKeyFile=%2Fetc%2Fssl%2Fmongodb%2Fmongodb.pem",
     }
     SENDER_NAME = "similarbooks Support"
-    MAIL_USERNAME = "support@similarbooks.net"
+    MAIL_USERNAME = "support@findsimilarbooks.com"
     MAIL_PASSWORD = os.environ.get("MAIL_PASSWORD")
     MAIL_SERVER = "mail.privateemail.com"
     MAIL_PORT = 465

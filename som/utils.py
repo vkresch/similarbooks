@@ -239,3 +239,60 @@ def load_documents_dict(directory, max_documents=40000):
         for filepath in tqdm(limited_filepaths)
     }
     return documents
+
+
+TRAIN_SOM_QUERY = """
+{
+  all_books (filters: {summary_exists: true}, per_page: 500) {
+    edges {
+      node {
+        book_id,
+        summary,
+      }
+    }
+  }
+}""".strip()
+
+
+def query_training_data():
+    logging.info("Getting data ...")
+    logging.info(f"Query: {TRAIN_SOM_QUERY}")
+    response = requests.post(
+        url=GRAPHQL_ENDPOINT,
+        json={"query": TRAIN_SOM_QUERY},
+    ).json()
+    books = response["data"]["all_books"]["edges"]
+    if len(books) == 0:
+        raise Exception(f"No real estate found for the following query: {query}")
+    return books
+
+
+DEBUG_SOM_QUERY = """
+{{
+  all_books (filters: {0}) {{
+    edges {{
+      node {{
+        book_id,
+        title,
+        author,
+        summary,
+      }}
+    }}
+  }}
+}}""".strip()
+
+
+def query_debug_display(book_ids):
+    logging.info("Getting data ...")
+    query = DEBUG_SOM_QUERY.format(
+        "{{book_id_in: {0}, summary_exists: true}}".format(book_ids)
+    ).replace("'", '"')
+    logging.info(f"Query: {query}")
+    response = requests.post(
+        url=GRAPHQL_ENDPOINT,
+        json={"query": query},
+    ).json()
+    books = response["data"]["all_books"]["edges"]
+    if len(books) == 0:
+        raise Exception(f"No real estate found for the following query: {query}")
+    return books

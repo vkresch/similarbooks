@@ -1,4 +1,4 @@
-# Similar Books
+# Find Similar Books
 
 Search engine for finding similar books.
 This has also the potential to be used as plagiarism detector.
