@@ -50,35 +50,38 @@ else:
             min_df=1, stop_words="english"
         )  # Adjust min_df to remove infrequent words if necessary
 
-        # Generate document-term matrix
-        dtm = vectorizer.fit_transform(
-            [book.get("node").get("summary")]
-        )  # text should be a single string, hence [text]
+        try:
+            # Generate document-term matrix
+            dtm = vectorizer.fit_transform(
+                [book.get("node").get("summary")]
+            )  # text should be a single string, hence [text]
 
-        # Store the vectorizer and sparse matrix
-        dtm_dict[book.get("node").get("book_id")] = {
-            "vectorizer": vectorizer,
-            "matrix": dtm,
-        }
+            # Store the vectorizer and sparse matrix
+            dtm_dict[book.get("node").get("book_id")] = {
+                "vectorizer": vectorizer,
+                "matrix": dtm,
+            }
 
-        # Sum word occurrences across the document and keep sparse format
-        word_occurrences = pd.DataFrame(
-            dtm.sum(axis=0).A1,  # A1 gives a flat dense array from sparse matrix
-            index=vectorizer.get_feature_names_out(),
-            columns=[
-                book.get("node").get("book_id")
-            ],  # Column for the filename to track the document
-        ).T  # Transpose to make words columns, filename as row
+            # Sum word occurrences across the document and keep sparse format
+            word_occurrences = pd.DataFrame(
+                dtm.sum(axis=0).A1,  # A1 gives a flat dense array from sparse matrix
+                index=vectorizer.get_feature_names_out(),
+                columns=[
+                    book.get("node").get("book_id")
+                ],  # Column for the filename to track the document
+            ).T  # Transpose to make words columns, filename as row
 
-        # Compute the hit histogram using your custom function
-        hit_histogram = get_hit_histogram(wordcategory_som, word_occurrences)
-        # draw_barchart(filename, hit_histogram)
+            # Compute the hit histogram using your custom function
+            hit_histogram = get_hit_histogram(wordcategory_som, word_occurrences)
+            # draw_barchart(filename, hit_histogram)
 
-        # Ensure hit_histogram is a DataFrame
-        if isinstance(hit_histogram, np.ndarray):
-            hit_histogram = pd.DataFrame(
-                [hit_histogram]
-            )  # Convert array to DataFrame and use a list to create one row
+            # Ensure hit_histogram is a DataFrame
+            if isinstance(hit_histogram, np.ndarray):
+                hit_histogram = pd.DataFrame(
+                    [hit_histogram]
+                )  # Convert array to DataFrame and use a list to create one row
+        except Exception as e:
+            pass
 
         # Add the filename as the index of the hit_histogram DataFrame
         hit_histogram.index = [book.get("node").get("book_id")]
@@ -97,8 +100,8 @@ train_data = scaler.scale(hit_df.T).T
 
 logging.info(f"Data shape: {train_data.shape}")
 som = somoclu.Somoclu(
-    10,
-    10,
+    100,
+    100,
     compactsupport=True,
     maptype="toroid",
     verbose=2,

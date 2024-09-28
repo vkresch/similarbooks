@@ -12,7 +12,7 @@ class Scaler:
         # call for training data
         self._colnames = df.columns
         self._scale_dict = {
-            column: {"min": float(df[column].min()), "max": float(df[column].max())}
+            column: {"min": df[column].min(), "max": df[column].max()}
             for column in self._colnames
         }
         return pd.DataFrame(
