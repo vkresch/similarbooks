@@ -1,22 +1,113 @@
 {% extends "layout.html" %}
 {% block content %}
-<br><br><br><br>
-<h3>{{ book['node']['title'] }} by {{ book['node']['author'] }}</h3>
-<img src="{{ image_file }}" alt="No Book Cover found!">
 <br><br>
-<h6>Summary</h6>
-<p>{{ book['node']['summary'] }}</p>
+<div class="book-display">
+    <h2>{{ book['node']['title'] }}</h2>
+    <p class="book-author">by {{ book['node']['author'] }}</p>
+    
+    <div class="book-details">
+        <div class="book-cover">
+            <img src="{{ image_file }}" alt="Cover for {{ book['node']['title'] }}" onerror="this.src='/static/default-cover.jpg'">
+        </div>
 
+        <div class="book-summary">
+            <h3>Summary</h3>
+            <p>{{ book['node']['summary'] }}</p>
+        </div>
+    </div>
 
-{% if similar_books|length >0 %}
-<h6>Similar Books</h6>
-{% else %}
-<h6>No similar books found!</h6>
-{% endif %}
-<ul style="list-style-type: none;">
-    {% for sbook in similar_books %}
-        <li><a href="{{ url_for('main.detailed_book', sha=sbook['node']['sha']) }}" rel="nofollow noopener">{{ sbook['node']['title'] }}</a> by {{ sbook['node']['author'] }}</li>
-    {% endfor %}
-</ul>
+    {% if similar_books|length > 0 %}
+    <div class="similar-books-section">
+        <h3>Similar Books</h3>
+        <ul class="similar-books-list">
+            {% for sbook in similar_books %}
+                <li class="similar-book-item">
+                    <div class="similar-book-cover">
+                        <img src="{{ url_for('static', filename='covers/' + sbook['node']['sha'] + '.png') }}" alt="Cover for {{ sbook['node']['title'] }}" onerror="this.src='/static/default-cover.jpg'">
+                    </div>
+                    <div class="similar-book-info">
+                        <a href="{{ url_for('main.detailed_book', sha=sbook['node']['sha']) }}" rel="nofollow noopener">
+                            {{ sbook['node']['title'] }}
+                        </a>
+                        <p>by {{ sbook['node']['author'] }}</p>
+                    </div>
+                </li>
+            {% endfor %}
+        </ul>
+    </div>
+    {% else %}
+    <h3>No Similar Books Found</h3>
+    {% endif %}
+</div>
+
+<!-- Optional styling -->
+<style>
+    .book-display {
+        margin-top: 40px;
+        text-align: center;
+    }
+    .book-details {
+        display: flex;
+        justify-content: center;
+        align-items: flex-start;
+        margin: 20px 0;
+    }
+    .book-cover img {
+        max-width: 200px;
+        height: auto;
+        border-radius: 8px;
+        box-shadow: 0px 4px 10px rgba(0, 0, 0, 0.1);
+    }
+    .book-summary {
+        max-width: 600px;
+        margin-left: 20px;
+        text-align: left;
+    }
+    .similar-books-section {
+        margin-top: 40px;
+        text-align: center; /* Center the content */
+    }
+    .similar-books-section h3 {
+        text-align: center; /* Center the <h3> headline */
+    }
+    .similar-books-list {
+        display: flex;
+        flex-wrap: wrap;
+        gap: 15px;
+        justify-content: center;
+    }
+    .similar-book-item {
+        list-style: none;
+        padding: 10px;
+        border: 1px solid #ccc;
+        border-radius: 8px;
+        box-shadow: 0px 4px 8px rgba(0, 0, 0, 0.05);
+        transition: box-shadow 0.2s ease-in-out;
+        display: flex;
+        flex-direction: column;
+        align-items: center;
+        width: 150px;
+        text-align: center;
+    }
+    .similar-book-item:hover {
+        box-shadow: 0px 6px 15px rgba(0, 0, 0, 0.15);
+    }
+    .similar-book-cover img {
+        max-width: 100px;
+        height: auto;
+        border-radius: 4px;
+        margin-bottom: 10px;
+    }
+    .similar-book-info {
+        text-align: center;
+    }
+    a {
+        text-decoration: none;
+        color: #007BFF;
+    }
+    a:hover {
+        text-decoration: underline;
+    }
+</style>
 
 {% endblock %}
