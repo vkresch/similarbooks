@@ -7,11 +7,13 @@ class Config:
     VERSION_PATCH = 0
     SECRET_KEY = os.environ.get("API_SECRET_KEY")
     EVAL_API_SECRET_KEY = os.environ.get("EVAL_API_SECRET_KEY")
+    MONGODB_DB = "similarbooks"
     MONGODB_SIMILARBOOKS_URL = os.environ.get("MONGODB_SIMILARBOOKS_URL")
     MONGODB_SIMILARBOOKS_USER = os.environ.get("MONGODB_SIMILARBOOKS_USER")
     MONGODB_SIMILARBOOKS_PWD = os.environ.get("MONGODB_SIMILARBOOKS_PWD")
+    MONGO_URI = f"mongodb://{MONGODB_SIMILARBOOKS_USER}:{MONGODB_SIMILARBOOKS_PWD}@{MONGODB_SIMILARBOOKS_URL}:27017/{MONGODB_DB}?authMechanism=DEFAULT&authSource={MONGODB_DB}&tls=true&tlsCAFile=%2Fetc%2Fssl%2Fmongodb%2Fmongodb.crt&tlsCertificateKeyFile=%2Fetc%2Fssl%2Fmongodb%2Fmongodb.pem"
     MONGODB_SETTINGS = {
-        "host": f"mongodb://{MONGODB_SIMILARBOOKS_USER}:{MONGODB_SIMILARBOOKS_PWD}@{MONGODB_SIMILARBOOKS_URL}:27017/similarbooks?authMechanism=DEFAULT&authSource=similarbooks&tls=true&tlsCAFile=%2Fetc%2Fssl%2Fmongodb%2Fmongodb.crt&tlsCertificateKeyFile=%2Fetc%2Fssl%2Fmongodb%2Fmongodb.pem",
+        "host": MONGO_URI,
     }
     SENDER_NAME = "similarbooks Support"
     MAIL_USERNAME = "support@findsimilarbooks.com"

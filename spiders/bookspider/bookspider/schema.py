@@ -35,6 +35,10 @@ class BookFilter(graphene.InputObjectType):
         name="title",
         description="Book has to have ONE of the provided title",
     )
+    title__exists = graphene.String(
+        name="title_exists",
+        description="Book title exists",
+    )
     title__contains = graphene.String(
         name="title_contains",
         description="Books has to have ONE of the provided city",

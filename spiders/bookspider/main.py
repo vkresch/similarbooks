@@ -3,7 +3,7 @@ import argparse
 from scrapy.crawler import CrawlerProcess
 from bookspider.spiders.gutenberg import GutenbergSpider
 from bookspider.spiders.archive import ArchiveSpider
-from bookspider.spiders.goodreads import GoodreadsSpider
+from bookspider.spiders.goodreads import GoodreadsSpider, GoodreadsFixerSpider
 from bookspider.settings import (
     BOT_NAME,
     USER_AGENT,
@@ -27,6 +27,7 @@ def command_line_arguments():
         help="Crawler.",
         choices=[
             "goodreads",
+            "goodreadsfixer",
             "gutenberg",
             "archive",
         ],
@@ -59,6 +60,8 @@ if __name__ == "__main__":
         crawler = ArchiveSpider
     elif args.crawler == "goodreads":
         crawler = GoodreadsSpider
+    elif args.crawler == "goodreadsfixer":
+        crawler = GoodreadsFixerSpider
     else:
         raise Exception("No crawler selected!")
 

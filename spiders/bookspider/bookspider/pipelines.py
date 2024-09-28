@@ -43,7 +43,11 @@ class BookspiderMongoDBPipeline:
             spider.logger.info(
                 f"Book with id {item['book_id']} already saved into the database!"
             )
-            pass
+            if hasattr(spider, "start_urls"):
+                for key, value in item.items():
+                    setattr(existing_item, key, value)
+                spider.logger.info(f"Book with id {item['book_id']} overridden!")
+                existing_item.save()
         else:
             book = Book(**dict(item))
             book.save()

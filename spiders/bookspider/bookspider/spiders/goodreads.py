@@ -1,4 +1,5 @@
 # -*- coding: utf-8 -*-
+import os
 import scrapy
 from scrapy.loader import ItemLoader
 from bookspider.items import (
@@ -8,6 +9,7 @@ from scrapy.http import Request
 from itemloaders.processors import MapCompose, TakeFirst, Join
 
 from w3lib.html import replace_escape_chars
+from pymongo import MongoClient
 import numpy as np
 import re
 import datetime
@@ -27,7 +29,12 @@ def fix_string(value):
 
 
 # Source: https://en.wikipedia.org/wiki/Goodreads
-GOODREADS_BOOK_COUNT = 10_000_000
+GOODREADS_BOOK_COUNT = 1_000_000
+
+MONGODB_SIMILARBOOKS_URL = os.environ.get("MONGODB_SIMILARBOOKS_URL")
+MONGODB_SIMILARBOOKS_USER = os.environ.get("MONGODB_SIMILARBOOKS_USER")
+MONGODB_SIMILARBOOKS_PWD = os.environ.get("MONGODB_SIMILARBOOKS_PWD")
+MONGODB_SIMILARBOOKS_URI = f"mongodb://{MONGODB_SIMILARBOOKS_USER}:{MONGODB_SIMILARBOOKS_PWD}@{MONGODB_SIMILARBOOKS_URL}:27017/similarbooks?authMechanism=DEFAULT&authSource=similarbooks&tls=true&tlsCAFile=%2Fetc%2Fssl%2Fmongodb%2Fmongodb.crt&tlsCertificateKeyFile=%2Fetc%2Fssl%2Fmongodb%2Fmongodb.pem"
 
 
 class GoodreadsSpider(scrapy.Spider):
@@ -124,10 +131,6 @@ class GoodreadsSpider(scrapy.Spider):
             series_position = book_series[0].get("userPosition")
             if series_position:
                 l.add_value("series_position", series_position)
-
-        is_series = book_data.get("imageUrl")
-        if is_series:
-            l.add_value("is_series", is_series)
 
         genres = book_data.get("bookGenres")
         if len(genres) > 0:
@@ -253,3 +256,36 @@ class GoodreadsSpider(scrapy.Spider):
 
         l = self.housekeeping(response, l)
         return l.load_item()
+
+
+class GoodreadsFixerSpider(GoodreadsSpider):
+
+    def __init__(self, *args, **kwargs):
+        super(GoodreadsFixerSpider, self).__init__(*args, **kwargs)
+        self.client = MongoClient(MONGODB_SIMILARBOOKS_URI)
+        self.db = self.client["similarbooks"]
+        self.collection = self.db["book"]
+        self.start_urls = self.get_start_urls()
+
+    def spider_closed(self, spider, reason):
+        # Close MongoDB connection when the spider is closed
+        self.client.close()
+
+    def parse(self, response):
+        # Instead of building a massive list, iterate and yield URLs dynamically
+        for book_id, url in self.start_urls.items():
+            yield Request(
+                url,
+                callback=self.parse_item,
+                meta={"url": url, "book_id": book_id},
+            )
+
+    def get_start_urls(self):
+        # Retrieve all URLs from the MongoDB collection
+        filter_query = {"title": {"$exists": False}, "spider": "goodreads"}
+        pipeline = [
+            {"$match": filter_query},
+            {"$sample": {"size": 10_000_000}},  # Adjust the size as needed
+        ]
+        result = self.collection.aggregate(pipeline)
+        return {item["book_id"]: item["url"] for item in result}
