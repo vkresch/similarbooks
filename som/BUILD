@@ -49,6 +49,7 @@ py_binary(
         requirement("tqdm"),
         requirement("pandas"),
         requirement("beautifulsoup4"),
+        requirement("pillow"),
         "//app/similarbooks/main:constants",
         "//app/similarbooks:similarbooks_config",
         ":utils",

@@ -1,9 +1,9 @@
 {% extends "layout.html" %}
 {% block content %}
 <br><br><br><br>
-<h3>{{ book['node']['title'] }}</h3>
-<h6>{{ book['node']['author'] }}</h5>
-
+<h3>{{ book['node']['title'] }} by {{ book['node']['author'] }}</h3>
+<img src="{{ image_file }}" alt="No Book Cover found!">
+<br><br>
 <h6>Summary</h6>
 <p>{{ book['node']['summary'] }}</p>
 

@@ -1,10 +1,13 @@
+import os
 import logging
 import time
 import argparse
 import requests
 from pathlib import Path
 from bs4 import BeautifulSoup
-import os
+from PIL import Image
+from io import BytesIO
+from pymongo import MongoClient
 
 PARENT_DIR = Path(__file__).resolve().parent
 
@@ -184,6 +187,31 @@ def download_all_books(save_dir=PARENT_DIR / Path(f"data/archive_books"), delay=
             break
 
 
+def download_book_cover(sha, url):
+    # Send an HTTP request to the URL
+    response = requests.get(url)
+
+    savedir = PARENT_DIR / Path(f"../app/similarbooks/static/covers/{sha}.png")
+
+    # Check if the request was successful (status code 200)
+    if response.status_code == 200:
+        # Read the image data from the response content
+        img_data = response.content
+
+        # Use BytesIO to open the image data as a PIL image
+        img = Image.open(BytesIO(img_data))
+
+        # Save the image locally
+        img.save(savedir)
+        logging.info(f"Image {sha} downloaded and saved successfully!")
+    else:
+        logging.info(
+            f"Failed to download image {sha}. Status code: {response.status_code}"
+        )
+
+    time.sleep(1)
+
+
 def command_line_arguments():
     """Define and handle command line interface"""
     parser = argparse.ArgumentParser(
@@ -196,6 +224,7 @@ def command_line_arguments():
         choices=[
             "gutenberg",
             "archive",
+            "goodreadscovers",
         ],
         default="gutenberg",
         type=str,
@@ -210,3 +239,21 @@ if __name__ == "__main__":
             download_gutenberg_book(f"{i}")
     elif args.website == "archive":
         download_all_books()
+    elif args.website == "goodreadscovers":
+        MONGODB_SIMILARBOOKS_URL = os.environ.get("MONGODB_SIMILARBOOKS_URL")
+        MONGODB_SIMILARBOOKS_USER = os.environ.get("MONGODB_SIMILARBOOKS_USER")
+        MONGODB_SIMILARBOOKS_PWD = os.environ.get("MONGODB_SIMILARBOOKS_PWD")
+        MONGODB_SIMILARBOOKS_URI = f"mongodb://{MONGODB_SIMILARBOOKS_USER}:{MONGODB_SIMILARBOOKS_PWD}@{MONGODB_SIMILARBOOKS_URL}:27017/similarbooks?authMechanism=DEFAULT&authSource=similarbooks&tls=true&tlsCAFile=%2Fetc%2Fssl%2Fmongodb%2Fmongodb.crt&tlsCertificateKeyFile=%2Fetc%2Fssl%2Fmongodb%2Fmongodb.pem"
+        client = MongoClient(MONGODB_SIMILARBOOKS_URI)
+        db = client["similarbooks"]
+        collection = db["book"]
+        filter_query = {"title": {"$exists": False}, "spider": "goodreads"}
+        pipeline = [
+            {"$match": filter_query},
+            {"$sample": {"size": 10_000_000}},  # Adjust the size as needed
+        ]
+        result = collection.aggregate(pipeline)
+        for item in result:
+            image_url = item.get("image_url")
+            if image_url:
+                download_book_cover(item["sha"], image_url)

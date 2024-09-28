@@ -62,15 +62,14 @@ def detailed_book(sha):
     if len(book) > 0:
         book = book[0]  # Unlist the book
         som = model_dict["websom"]
-        clean_book_id = book["node"]["book_id"]
-        bmu_nodes = som.labels.get(clean_book_id)
+        book_id = book["node"]["book_id"]
+        image_file = url_for("static", filename=f"covers/{sha}.png")
+        bmu_nodes = som.labels.get(book_id)
         matched_indices = np.any(
             np.all(bmu_nodes == som.bmus[:, None, :], axis=2), axis=1
         )
         matched_list = list(pd.Series(som.labels.keys())[matched_indices])
-        prefix_matched_list = [
-            match for match in matched_list if match != clean_book_id
-        ]
+        prefix_matched_list = [match for match in matched_list if match != book_id]
         similar_books = query_data(
             BOOK_QUERY,
             {"book_id_in": prefix_matched_list, "summary_exists": True},
@@ -80,6 +79,7 @@ def detailed_book(sha):
             book=book,
             similar_books=similar_books,
             description=book.get("summary"),
+            image_file=image_file,
             title=f"{book.get('title')} by {book.get('author')}",
         )
     return render_template("not_found.html")

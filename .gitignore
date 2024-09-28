@@ -5,6 +5,7 @@ documentation/
 backup/
 .vscode/
 data/
+covers/
 
 bazel-*
 *.pyc
