@@ -1,23 +1,20 @@
 <!doctype html>
 <html lang="en">
 <head>
-    <!-- Global site tag (gtag.js) - Google Analytics -->
-    <!-- <script async src="https://www.googletagmanager.com/gtag/js?id=G-41HY3JRKM1"></script> -->
-    <script>
-    window.dataLayer = window.dataLayer || [];
-    function gtag(){dataLayer.push(arguments);}
-    gtag('js', new Date());
-
-    gtag('config', 'G-41HY3JRKM1');
-    </script>
-
+    <!-- Google Tag Manager -->
+    <script>(function(w,d,s,l,i){w[l]=w[l]||[];w[l].push({'gtm.start':
+    new Date().getTime(),event:'gtm.js'});var f=d.getElementsByTagName(s)[0],
+    j=d.createElement(s),dl=l!='dataLayer'?'&l='+l:'';j.async=true;j.src=
+    'https://www.googletagmanager.com/gtm.js?id='+i+dl;f.parentNode.insertBefore(j,f);
+    })(window,document,'script','dataLayer','GTM-546QDHXF');</script>
+    <!-- End Google Tag Manager -->
     <!-- Required meta tags -->
     <meta charset="utf-8">
     <meta name="viewport" content="width=device-width, initial-scale=1, shrink-to-fit=no">
-    <meta name="description" content="{% if description %}{{ description }}{% else %}Welcome to findsimilarbooks.com, your personalized book discovery platform! Our recommendation system helps you find books similar to the ones you already love. Simply enter a book title, and we'll suggest titles with matching themes, genres, writing styles, or even author vibes. Whether you're a fan of gripping thrillers, cozy romances, or thought-provoking non-fiction, findsimilarbooks.com makes it easy to explore new reads that fit your tastes. Perfect for bookworms seeking their next great read or those looking to dive deeper into their favorite genres. Discover your next favorite book today!{% endif %}">
+    <meta name="description" content="{% if description %}{{ description }}{% else %}Welcome to findsimilarbooks.com, your personalized book discovery platform!{% endif %}">
     <meta property="og:title" content="{% if title %}similarbooks - {{ title }}{% else %}similarbooks{% endif %}">
-    <meta property="og:description" content="{% if description %}{{ description }}{% else %}Welcome to findsimilarbooks.com, your personalized book discovery platform! Our recommendation system helps you find books similar to the ones you already love. Simply enter a book title, and we'll suggest titles with matching themes, genres, writing styles, or even author vibes. Whether you're a fan of gripping thrillers, cozy romances, or thought-provoking non-fiction, findsimilarbooks.com makes it easy to explore new reads that fit your tastes. Perfect for bookworms seeking their next great read or those looking to dive deeper into their favorite genres. Discover your next favorite book today!{% endif %}">
-    <meta name="keywords" content="similar books, book recommendations, find similar books, book discovery, book suggestion, personalized book recommendations, book search, book finder, book recommendation engine, similar reads, next book to read, book recommendation system, book genres, similar authors, find new books, discover books, findsimilarbooks.com">
+    <meta property="og:description" content="{% if description %}{{ description }}{% else %}Welcome to findsimilarbooks.com, your personalized book discovery platform!{% endif %}">
+    <meta name="keywords" content="similar books, book recommendations, find similar books, book discovery, book suggestion, personalized book recommendations, book search, book finder, book recommendation engine">
     {% if title %}
         <title>Find Similar Books - {{ title }}</title>
     {% else %}
@@ -44,12 +41,16 @@
     </style>
 </head>
 <body>
+<!-- Google Tag Manager (noscript) -->
+<noscript><iframe src="https://www.googletagmanager.com/ns.html?id=GTM-546QDHXF"
+height="0" width="0" style="display:none;visibility:hidden"></iframe></noscript>
+<!-- End Google Tag Manager (noscript) -->
 
-<!--navigation-->
+<!-- Navigation -->
 <section class="smart-scroll">
     <div class="container-fluid">
         <nav class="navbar navbar-expand-md navbar-dark bg-dark">
-            <a class="navbar-brand heading-black" href="/">
+            <a class="navbar-brand" href="/">
                 Find Similar Books
             </a>
         </nav>
@@ -81,9 +82,9 @@
             <div class="col-sm-5 mr-auto">
                 <h5><a href="https://github.com/kretronik/similarbooks/issues" target="_blank" rel="nofollow noopener">Support</a></h5>
                 <p class="text-muted">
-                    For support, questions, bug reports or feature requests please open an issue on <a href="https://github.com/kretronik/similarbooks/issues" target="_blank" rel="nofollow noopener">GitHub</a>.
+                    For support, questions, bug reports or feature requests, please open an issue on <a href="https://github.com/kretronik/similarbooks/issues" target="_blank" rel="nofollow noopener">GitHub</a>.
                 </p>
-                <ul class="list-inline social social-sm">
+                <ul class="list-inline footer-social-icons">
                     <li class="list-inline-item">
                         <a href="https://kretronik.com" target="_blank" rel="nofollow noopener"><i class="fa fa-home"></i></a>
                     </li>
@@ -114,11 +115,9 @@
     </div>
 </footer>
 
-<!--scroll to top-->
 <div class="scroll-top">
     <i class="fa fa-angle-up" aria-hidden="true"></i>
 </div>
 
-<!-- jQuery first, then Popper.js, then Bootstrap JS -->
 </body>
 </html>

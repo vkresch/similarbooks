@@ -12,7 +12,7 @@
 
         <div class="book-summary">
             <h3>Summary</h3>
-            <p>{{ book['node']['summary'] }}</p>
+            <p>{{ book['node']['summary']|safe }}</p>
         </div>
     </div>
 
@@ -75,7 +75,7 @@
         .book-summary {
             margin-left: 0; /* Reset margin for mobile */
             margin-top: 20px;
-            text-align: center; /* Center-align the text on mobile */
+            text-align: left; /* Center-align the text on mobile */
         }
     }
 
@@ -117,15 +117,6 @@
     }
     .similar-book-info {
         text-align: center;
-    }
-
-    /* General Link Styling */
-    a {
-        text-decoration: none;
-        color: #007BFF;
-    }
-    a:hover {
-        text-decoration: underline;
     }
 </style>
 

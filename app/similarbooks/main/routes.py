@@ -78,9 +78,9 @@ def detailed_book(sha):
             "detailed.html",
             book=book,
             similar_books=similar_books,
-            description=book.get("summary"),
+            description=book.get("node").get("summary"),
             image_file=image_file,
-            title=f"{book.get('title')} by {book.get('author')}",
+            title=f"{book.get('node').get('title')} by {book.get('node').get('author')}",
         )
     return render_template("not_found.html")
 

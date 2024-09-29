@@ -3130,11 +3130,13 @@ input[type="button"].btn-block {
         justify-content: space-between; }
 
 .navbar-brand {
+  margin: 0 auto;
+  font-size: 24px;
+  font-weight: bold;
+  text-align: center;
   display: inline-block;
   padding-top: 0.0625rem;
   padding-bottom: 0.0625rem;
-  margin-right: 1.25rem;
-  font-size: 1.25rem;
   line-height: inherit;
   white-space: nowrap; }
   .navbar-brand:hover, .navbar-brand:focus {
