@@ -34,6 +34,18 @@ def command_line_arguments():
         default="goodreads",
         type=str,
     )
+    parser.add_argument(
+        "--start_id",
+        help="Start book number id.",
+        default=1,
+        type=int,
+    )
+    parser.add_argument(
+        "--end_id",
+        help="End book number id",
+        default=1_000_000,
+        type=int,
+    )
     return parser.parse_args()
 
 
@@ -65,5 +77,5 @@ if __name__ == "__main__":
     else:
         raise Exception("No crawler selected!")
 
-    c.crawl(crawler)
+    c.crawl(crawler, start_id=args.start_id, end_id=args.end_id)
     c.start()

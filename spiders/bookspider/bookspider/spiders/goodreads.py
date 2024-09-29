@@ -1,5 +1,6 @@
 # -*- coding: utf-8 -*-
 import os
+import random
 import scrapy
 from scrapy.loader import ItemLoader
 from bookspider.items import (
@@ -28,9 +29,6 @@ def fix_string(value):
     return value
 
 
-# Source: https://en.wikipedia.org/wiki/Goodreads
-GOODREADS_BOOK_COUNT = 1_000_000
-
 MONGODB_SIMILARBOOKS_URL = os.environ.get("MONGODB_SIMILARBOOKS_URL")
 MONGODB_SIMILARBOOKS_USER = os.environ.get("MONGODB_SIMILARBOOKS_USER")
 MONGODB_SIMILARBOOKS_PWD = os.environ.get("MONGODB_SIMILARBOOKS_PWD")
@@ -42,13 +40,16 @@ class GoodreadsSpider(scrapy.Spider):
     allowed_domains = ["web", "goodreads.com"]
     url = "https://www.goodreads.com/book/show/{0}"
 
+    def __init__(self, *args, **kwargs):
+        super(GoodreadsSpider, self).__init__(*args, **kwargs)
+
     def start_requests(self):
         url = self.url.format(1)
         yield Request(url)
 
     def parse(self, response):
         # Instead of building a massive list, iterate and yield URLs dynamically
-        for i in range(1, GOODREADS_BOOK_COUNT):
+        for i in range(self.start_id, self.end_id):
             url = f"https://www.goodreads.com/book/show/{i}"
             yield Request(url, callback=self.parse_item)
 
