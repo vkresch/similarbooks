@@ -251,7 +251,7 @@ if __name__ == "__main__":
         client = MongoClient(MONGODB_SIMILARBOOKS_URI)
         db = client["similarbooks"]
         collection = db["book"]
-        filter_query = {"title": {"$exists": False}, "spider": "goodreads"}
+        filter_query = {"spider": "goodreads"}
         pipeline = [
             {"$match": filter_query},
             {"$sample": {"size": 10_000_000}},  # Adjust the size as needed
