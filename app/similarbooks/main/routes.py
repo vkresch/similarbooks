@@ -47,7 +47,7 @@ def index():
     if search_form.validate_on_submit():
         books = query_data(
             BOOK_QUERY,
-            {"title_contains": search_form.title.data, "summary_exists": True},
+            {"summary_exists": True, "title_contains": search_form.title.data},
         )
     return render_template("home.html", books=books, search_form=search_form)
 

@@ -152,7 +152,7 @@ def update_filter(filters, kwargs):
 def common_resolver(**kwargs):
     per_page = min(kwargs.get("per_page", QUERY_LIMIT), QUERY_LIMIT)
     offset = (kwargs.get("page", 1) - 1) * per_page
-    order_by = kwargs.get("order_by", "-date")
+    order_by = kwargs.get("order_by", "-book_id")
     filters = update_filter(kwargs.get("filters", {}), kwargs)
     pipeline = [
         {"$match": convert_filters(filters)},  # Apply the filters in the pipeline
