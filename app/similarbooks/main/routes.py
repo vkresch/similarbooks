@@ -47,7 +47,7 @@ def index():
     if search_form.validate_on_submit():
         books = query_data(
             BOOK_QUERY,
-            {"summary_exists": True, "title_contains": search_form.title.data},
+            {"title_contains": search_form.title.data},
         )
     return render_template("home.html", books=books, search_form=search_form)
 
@@ -72,7 +72,7 @@ def detailed_book(sha):
         prefix_matched_list = [match for match in matched_list if match != book_id]
         similar_books = query_data(
             BOOK_QUERY,
-            {"book_id_in": prefix_matched_list, "summary_exists": True},
+            {"book_id_in": prefix_matched_list},
         )
         return render_template(
             "detailed.html",

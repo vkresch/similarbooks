@@ -94,7 +94,9 @@ class BookspiderMongoDBPipeline:
         disconnect(self.mongo_db)
 
     def process_item(self, item, spider):
-        download_book_cover(spider, item["sha"], item["image_url"])
+        image_url = item.get("image_url")
+        if image_url:
+            download_book_cover(spider, item["sha"], image_url)
         existing_item = Book.objects(book_id=item["book_id"]).first()
         if existing_item:
             # Do not save again if it exists already
