@@ -205,6 +205,11 @@ def download_book_cover(sha, url):
         # Use BytesIO to open the image data as a PIL image
         img = Image.open(BytesIO(img_data))
 
+        # Check if the image is in CMYK mode and convert it to RGB
+        if img.mode == "CMYK":
+            img = img.convert("RGB")
+            logging.info(f"Image {sha} converted from CMYK to RGB.")
+
         # Save the image locally
         img.save(savedir)
         logging.info(f"Image {sha} downloaded and saved successfully!")
