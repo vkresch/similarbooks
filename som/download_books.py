@@ -188,10 +188,14 @@ def download_all_books(save_dir=PARENT_DIR / Path(f"data/archive_books"), delay=
 
 
 def download_book_cover(sha, url):
+    savedir = PARENT_DIR / Path(f"../app/similarbooks/static/covers/{sha}.png")
+
+    if os.path.exists(savedir):
+        logging.info(f"Image {sha} already exists!")
+        return
+
     # Send an HTTP request to the URL
     response = requests.get(url)
-
-    savedir = PARENT_DIR / Path(f"../app/similarbooks/static/covers/{sha}.png")
 
     # Check if the request was successful (status code 200)
     if response.status_code == 200:
