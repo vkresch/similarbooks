@@ -62,7 +62,7 @@ sudo apt install libffi-dev build-essential libpng-dev libfontconfig1-dev python
 ## Copy artifacts like model and scalers
 scp -P 9797 *.pkl viktor@164.90.230.40:/home/viktor/similarbooks/som/models
 scp -r -P 9797 viktor@164.90.230.40:/home/viktor/backup/similarbooks /home/vkreschenski/Documents/Privat/Freelancer/backup
-scp -o IdentitiesOnly=yes -r /home/vkreschenski/Documents/Privat/Freelancer/backup/similarbooks/similarbooks/* viktor@similarbooks.net:/home/viktor/data
+scp -o IdentitiesOnly=yes -r /home/vkreschenski/Documents/Privat/Freelancer/backup/similarbooks/similarbooks/* viktor@findsimilarbooks.com:/home/viktor/data
 
 ## Create certificate
 openssl req -newkey rsa:2048 -new -x509 -days 1825 -nodes -out mongodb.crt -keyout mongodb.key -subj "/CN=31.220.93.169/C=DE/ST=Bayern/L=Burgkirchen/O=Kretronik GmbH" -addext "subjectAltName=IP:31.220.93.169,IP:127.0.0.1,DNS:localhost"
@@ -129,14 +129,14 @@ python3 -m venv venv
 sudo apt install nginx
 sudo pip3 install gunicorn
 sudo rm /etc/nginx/sites-enabled/default
-sudo vim /etc/nginx/sites-enabled/similarbooks
+sudo vim /etc/nginx/sites-enabled/findsimilarbooks
 
 sudo chmod -R 755 /home/viktor/similarbooks/app/similarbooks/static
 sudo chown -R www-data:www-data /home/viktor/similarbooks/app/similarbooks/static
 
 ```
 server{
-   server_name www.similarbooks.net;
+   server_name www.findsimilarbooks.com;
    location /static {
          alias /home/viktor/similarbooks/app/similarbooks/static;
     }
@@ -147,24 +147,24 @@ server{
     }
 
     listen 443 ssl; # managed by Certbot
-    ssl_certificate /etc/letsencrypt/live/www.similarbooks.net/fullchain.pem; # managed by Certbot
-    ssl_certificate_key /etc/letsencrypt/live/www.similarbooks.net/privkey.pem; # managed by Certbot
+    ssl_certificate /etc/letsencrypt/live/www.findsimilarbooks.com/fullchain.pem; # managed by Certbot
+    ssl_certificate_key /etc/letsencrypt/live/www.findsimilarbooks.com/privkey.pem; # managed by Certbot
     include /etc/letsencrypt/options-ssl-nginx.conf; # managed by Certbot
     ssl_dhparam /etc/letsencrypt/ssl-dhparams.pem; # managed by Certbot
 
 }
 server {
     listen       80;
-    server_name  similarbooks.net;
-    return       301 https://www.similarbooks.net$request_uri;
+    server_name  findsimilarbooks.com;
+    return       301 https://www.findsimilarbooks.com$request_uri;
 }
 server{
-    if ($host = www.similarbooks.net) {
+    if ($host = www.findsimilarbooks.com) {
         return 301 https://$host$request_uri;
     } # managed by Certbot
 
    listen 80;
-   server_name www.similarbooks.net;
+   server_name www.findsimilarbooks.com;
     return 404; # managed by Certbot
 
 }

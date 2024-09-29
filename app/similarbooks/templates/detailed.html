@@ -40,8 +40,9 @@
     {% endif %}
 </div>
 
-<!-- Optional styling -->
+<!-- Responsive Styling -->
 <style>
+    /* General Layout for Book Display */
     .book-display {
         margin-top: 40px;
         text-align: center;
@@ -51,6 +52,7 @@
         justify-content: center;
         align-items: flex-start;
         margin: 20px 0;
+        flex-wrap: wrap; /* Ensure flex items wrap on small screens */
     }
     .book-cover img {
         max-width: 200px;
@@ -63,12 +65,27 @@
         margin-left: 20px;
         text-align: left;
     }
+
+    /* Mobile Layout - Adjusting for small screens */
+    @media (max-width: 768px) {
+        .book-details {
+            flex-direction: column; /* Stack elements vertically on mobile */
+            align-items: center;
+        }
+        .book-summary {
+            margin-left: 0; /* Reset margin for mobile */
+            margin-top: 20px;
+            text-align: center; /* Center-align the text on mobile */
+        }
+    }
+
+    /* Similar Books Section */
     .similar-books-section {
         margin-top: 40px;
-        text-align: center; /* Center the content */
+        text-align: center;
     }
     .similar-books-section h3 {
-        text-align: center; /* Center the <h3> headline */
+        text-align: center;
     }
     .similar-books-list {
         display: flex;
@@ -101,6 +118,8 @@
     .similar-book-info {
         text-align: center;
     }
+
+    /* General Link Styling */
     a {
         text-decoration: none;
         color: #007BFF;
