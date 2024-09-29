@@ -8,6 +8,11 @@
 import os
 import sys
 from mongoengine import connect
+import time
+from pathlib import Path
+import requests
+from PIL import Image
+from io import BytesIO
 from mongoengine.connection import disconnect
 from bookspider.models import Book
 
@@ -19,6 +24,58 @@ MONGODB_SETTINGS = {
     "host": f"mongodb://{MONGODB_SIMILARBOOKS_USER}:{MONGODB_SIMILARBOOKS_PWD}@{MONGODB_SIMILARBOOKS_URL}:27017/similarbooks?authMechanism=DEFAULT&authSource=similarbooks&tls=true&tlsCAFile=%2Fetc%2Fssl%2Fmongodb%2Fmongodb.crt&tlsCertificateKeyFile=%2Fetc%2Fssl%2Fmongodb%2Fmongodb.pem",
     "port": 27017,
 }
+
+PARENT_DIR = Path(__file__).resolve().parent
+
+
+def download_book_cover(spider, sha, url, retries=3, timeout=10):
+    savedir = PARENT_DIR / Path(f"../../../app/similarbooks/static/covers/{sha}.png")
+
+    if os.path.exists(savedir):
+        spider.logger.info(f"Image {sha} already exists!")
+        return True
+
+    for attempt in range(retries):
+        try:
+            # Send an HTTP request to the URL
+            response = requests.get(url)
+
+            # Check if the request was successful (status code 200)
+            if response.status_code == 200:
+                # Read the image data from the response content
+                img_data = response.content
+
+                # Use BytesIO to open the image data as a PIL image
+                img = Image.open(BytesIO(img_data))
+
+                # Check if the image is in CMYK mode and convert it to RGB
+                if img.mode == "CMYK":
+                    img = img.convert("RGB")
+                    spider.logger.info(f"Image {sha} converted from CMYK to RGB.")
+
+                # Save the image locally
+                img.save(savedir)
+                spider.logger.info(f"Image {sha} downloaded and saved successfully!")
+                time.sleep(1)
+                return True  # Download succeeded, exit the loop
+            else:
+                spider.logger.error(
+                    f"Failed to download image {sha}. Status code: {response.status_code}"
+                )
+
+        except requests.exceptions.ConnectionError as e:
+            spider.logger.error(
+                f"Connection error: {e}. Retrying ({attempt + 1}/{retries})..."
+            )
+            time.sleep(2)  # Wait before retrying
+        except requests.exceptions.Timeout:
+            spider.logger.error(
+                f"Request timed out. Retrying ({attempt + 1}/{retries})..."
+            )
+            time.sleep(2)  # Wait before retrying
+
+    spider.logger.error(f"Failed to download the image {sha} after multiple attempts.")
+    return False
 
 
 class BookspiderMongoDBPipeline:
@@ -37,6 +94,7 @@ class BookspiderMongoDBPipeline:
         disconnect(self.mongo_db)
 
     def process_item(self, item, spider):
+        download_book_cover(spider, item["sha"], item["image_url"])
         existing_item = Book.objects(book_id=item["book_id"]).first()
         if existing_item:
             # Do not save again if it exists already

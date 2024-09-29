@@ -29,7 +29,7 @@
         {% for book in books %}
             <li class="search-result-item">
                 <div class="book-cover">
-                    <img src="{{ book['node']['image'] }}" alt="Cover for {{ book['node']['title'] }}" onerror="this.src='/static/default-cover.jpg'">
+                    <img src="{{ url_for('static', filename='covers/' + book['node']['sha'] + '.png') }}" alt="Cover for {{ book['node']['title'] }}" onerror="this.src='/static/default-cover.jpg'">
                 </div>
                 <div class="book-info">
                     <a href="{{ url_for('main.detailed_book', sha=book['node']['sha']) }}" rel="nofollow noopener">{{ book['node']['title'] }}</a> by {{ book['node']['author'] }}

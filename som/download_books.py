@@ -187,38 +187,52 @@ def download_all_books(save_dir=PARENT_DIR / Path(f"data/archive_books"), delay=
             break
 
 
-def download_book_cover(sha, url):
+def download_book_cover(sha, url, retries=3, timeout=10):
     savedir = PARENT_DIR / Path(f"../app/similarbooks/static/covers/{sha}.png")
 
     if os.path.exists(savedir):
         logging.info(f"Image {sha} already exists!")
-        return
+        return True
 
-    # Send an HTTP request to the URL
-    response = requests.get(url)
+    for attempt in range(retries):
+        try:
+            # Send an HTTP request to the URL
+            response = requests.get(url)
 
-    # Check if the request was successful (status code 200)
-    if response.status_code == 200:
-        # Read the image data from the response content
-        img_data = response.content
+            # Check if the request was successful (status code 200)
+            if response.status_code == 200:
+                # Read the image data from the response content
+                img_data = response.content
 
-        # Use BytesIO to open the image data as a PIL image
-        img = Image.open(BytesIO(img_data))
+                # Use BytesIO to open the image data as a PIL image
+                img = Image.open(BytesIO(img_data))
 
-        # Check if the image is in CMYK mode and convert it to RGB
-        if img.mode == "CMYK":
-            img = img.convert("RGB")
-            logging.info(f"Image {sha} converted from CMYK to RGB.")
+                # Check if the image is in CMYK mode and convert it to RGB
+                if img.mode == "CMYK":
+                    img = img.convert("RGB")
+                    logging.info(f"Image {sha} converted from CMYK to RGB.")
 
-        # Save the image locally
-        img.save(savedir)
-        logging.info(f"Image {sha} downloaded and saved successfully!")
-    else:
-        logging.info(
-            f"Failed to download image {sha}. Status code: {response.status_code}"
-        )
+                # Save the image locally
+                img.save(savedir)
+                logging.info(f"Image {sha} downloaded and saved successfully!")
+                time.sleep(1)
+                return True  # Download succeeded, exit the loop
+            else:
+                logging.error(
+                    f"Failed to download image {sha}. Status code: {response.status_code}"
+                )
 
-    time.sleep(1)
+        except requests.exceptions.ConnectionError as e:
+            logging.error(
+                f"Connection error: {e}. Retrying ({attempt + 1}/{retries})..."
+            )
+            time.sleep(2)  # Wait before retrying
+        except requests.exceptions.Timeout:
+            logging.error(f"Request timed out. Retrying ({attempt + 1}/{retries})...")
+            time.sleep(2)  # Wait before retrying
+
+    logging.error(f"Failed to download the image {sha} after multiple attempts.")
+    return False
 
 
 def command_line_arguments():
