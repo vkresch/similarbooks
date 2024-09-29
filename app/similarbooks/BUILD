@@ -20,11 +20,6 @@ filegroup(
 )
 
 filegroup(
-    name = "similarbooksjs",
-    srcs = ["static/js/utils.js", "static/js/scripts.js"],
-)
-
-filegroup(
     name = "profile_pics",
     srcs = ["static/profile_pics/default.png"],
 )
@@ -39,7 +34,7 @@ py_library(
         ":similarbooks_config",
         "//app/similarbooks/main:main",
     ],
-    data = [":templates", ":similarbooksjs", ":profile_pics"],
+    data = [":templates", ":profile_pics"],
     visibility = ["//app:__subpackages__"],
 )
 
