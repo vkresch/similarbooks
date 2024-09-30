@@ -247,6 +247,7 @@ TRAIN_SOM_QUERY = """
     edges {{
       node {{
         book_id,
+        title,
         summary,
       }}
     }}
@@ -259,6 +260,7 @@ UNLIMITED_TRAIN_SOM_QUERY = """
     edges {{
       node {{
         book_id,
+        title,
         summary,
       }}
     }}
@@ -315,3 +317,32 @@ def query_debug_display(book_ids):
     if len(books) == 0:
         raise Exception(f"No real estate found for the following query: {query}")
     return books
+
+
+def get_top_bmus(som, activation_map, top_n):
+    """Returns the top n matching units.
+
+    :param activation_map: Activation map computed with som.get_surface_state()
+    :type activation_map: 2D numpy.array
+
+    :returns: The bmus indexes and the second bmus indexes corresponding to
+              this activation map (same as som.bmus for the training samples).
+    :rtype: tuple of 2D numpy.array
+    """
+
+    # Normal BMU finding
+    if top_n == 1:
+        return som.get_bmus(activation_map)
+
+    n_samples = activation_map.shape[0]
+    top_bmus_combined = np.empty((n_samples, top_n, 2), dtype=int)
+    for n in range(top_n):
+        # Get the BMU indices
+        bmu_indices = activation_map.argmin(axis=1)
+        Y, X = np.unravel_index(bmu_indices, (som._n_rows, som._n_columns))
+        top_bmus_combined[:, n, :] = np.vstack((X, Y)).T
+
+        # Mask the BMU values
+        activation_map[np.arange(n_samples), bmu_indices] = np.inf
+
+    return top_bmus_combined[0]

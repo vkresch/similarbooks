@@ -39,9 +39,11 @@
     </ul>
 </div>
 {% else %}
-<div class="no-results">
-    <p>No results found. Please try again.</p>
-</div>
+{% if searched %}
+    <div class="no-results">
+        <p>No results found. Please try again.</p>
+    </div>
+{% endif %}
 {% endif %}
 
 <!-- Optional styling -->
@@ -107,5 +109,11 @@
         color: #777;
     }
 </style>
+
+<script>
+    if ( window.history.replaceState ) {
+        window.history.replaceState( null, null, window.location.href );
+    }
+</script>
 
 {% endblock %}

@@ -39,6 +39,36 @@ py_binary(
 )
 
 py_binary(
+    name = "show_websom",
+    main = "show_websom.py",
+    srcs = ["show_websom.py"],
+    deps = [
+        requirement("somoclu"),
+        requirement("numpy"),
+        requirement("tqdm"),
+        requirement("pandas"),
+        requirement("dash"),
+        "//app/similarbooks/main:constants",
+        ":utils",
+    ],
+)
+
+py_binary(
+    name = "show_wordcategory",
+    main = "show_wordcategory.py",
+    srcs = ["show_wordcategory.py"],
+    deps = [
+        requirement("somoclu"),
+        requirement("numpy"),
+        requirement("tqdm"),
+        requirement("pandas"),
+        requirement("dash"),
+        "//app/similarbooks/main:constants",
+        ":utils",
+    ],
+)
+
+py_binary(
     name = "download_books",
     main = "download_books.py",
     srcs = ["download_books.py"],

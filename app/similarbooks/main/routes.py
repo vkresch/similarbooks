@@ -44,12 +44,17 @@ def ping():
 def index():
     search_form = LandingSearchForm()
     books = []
+    searched = False
+    # TODO: Check title serach for special characters
     if search_form.validate_on_submit():
+        searched = True
         books = query_data(
             BOOK_QUERY,
             {"title_contains": search_form.title.data},
         )
-    return render_template("home.html", books=books, search_form=search_form)
+    return render_template(
+        "home.html", searched=searched, books=books, search_form=search_form
+    )
 
 
 @main.route("/book/<sha>/")

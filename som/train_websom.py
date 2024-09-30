@@ -42,7 +42,6 @@ if os.path.exists(PARENT_DIR / Path(f"models/hit_df.pkl")):
 else:
     logging.info(f"Generating hit histogram ...")
     summaries = query_training_data(limited=False)
-    dtm_dict = {}
     hit_data = []  # To collect rows for hit_df
     for book in tqdm(summaries):
         # Vectorize the text using CountVectorizer
@@ -53,16 +52,10 @@ else:
         # Generate document-term matrix
         try:
             dtm = vectorizer.fit_transform(
-                [book.get("node").get("summary")]
+                [book.get("node").get("title") + " " + book.get("node").get("summary")]
             )  # text should be a single string, hence [text]
         except Exception as e:
             continue
-
-        # Store the vectorizer and sparse matrix
-        dtm_dict[book.get("node").get("book_id")] = {
-            "vectorizer": vectorizer,
-            "matrix": dtm,
-        }
 
         # Sum word occurrences across the document and keep sparse format
         word_occurrences = pd.DataFrame(
@@ -97,6 +90,9 @@ else:
 
 scaler = Scaler()
 train_data = scaler.scale(hit_df.T).T
+
+with open(PARENT_DIR / Path(f"models/websom_scaler.pkl"), "wb") as file_model:
+    pickle.dump(scaler, file_model, pickle.HIGHEST_PROTOCOL)
 
 logging.info(f"Data shape: {train_data.shape}")
 som = somoclu.Somoclu(
