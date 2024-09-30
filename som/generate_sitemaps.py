@@ -12,7 +12,7 @@ logging.basicConfig(
     datefmt="%Y-%m-%d %H:%M:%S",
 )
 base_url = "https://findsimilarbooks.com/book/"
-chunk_size = 50000  # Maximum number of URLs per sitemap
+chunk_size = 25000  # Maximum number of URLs per sitemap
 sitemap_dir = PARENT_DIR / Path(
     f"../app/similarbooks/static/"
 )  # Directory to save the sitemap files
