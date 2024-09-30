@@ -12,11 +12,12 @@ filegroup(
         "templates/datenschutz.html",
         "static/css/default.css",
         "static/robots.txt",
-        "static/sitemap.xml",
         "static/scss/_custom.scss",
         "static/scss/_variables.scss",
         "static/favicon.ico",
-    ],
+    ] + glob([
+        "static/*.xml",
+    ]),
 )
 
 filegroup(

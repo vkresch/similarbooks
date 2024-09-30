@@ -4,7 +4,14 @@ from pathlib import Path
 from app.similarbooks.main.common import cache
 from similarbooks.config import Config
 from app.similarbooks.main.constants import DEBUG
-from flask import Flask, request, jsonify, render_template, send_from_directory
+from flask import (
+    Flask,
+    request,
+    jsonify,
+    render_template,
+    send_from_directory,
+    redirect,
+)
 from graphql_server.flask import GraphQLView
 from collections import UserDict
 from flask_mongoengine import MongoEngine
@@ -70,7 +77,17 @@ def create_app(config_class=Config):
 
     @app.route("/sitemap.xml")
     def serve_sitemap():
-        return send_from_directory(app.static_folder, "sitemap.xml")
+        return redirect("/sitemap_index.xml", code=301)
+
+    @app.route("/sitemap_index.xml")
+    def sitemap_index():
+        # Serve the sitemap_index.xml file from the SITEMAP_DIR
+        return send_from_directory(app.static_folder, "sitemap_index.xml")
+
+    @app.route("/<filename>")
+    def serve_sitemaps(filename):
+        # Serve the individual sitemap files (e.g., sitemap_books_1.xml, sitemap_books_2.xml)
+        return send_from_directory(app.static_folder, filename)
 
     from similarbooks.main.routes import main
 

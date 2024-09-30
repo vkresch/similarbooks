@@ -6,4 +6,4 @@ Disallow: /admin/
 Allow: /
 
 # Specify the location of your sitemap
-Sitemap: https://www.findsimilarbooks.com/sitemap.xml
+Sitemap: https://www.findsimilarbooks.com/sitemap_index.xml

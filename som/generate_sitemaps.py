@@ -14,7 +14,7 @@ logging.basicConfig(
 base_url = "https://findsimilarbooks.com/book/"
 chunk_size = 50000  # Maximum number of URLs per sitemap
 sitemap_dir = PARENT_DIR / Path(
-    f"../app/similarbooks/static/sitemaps/"
+    f"../app/similarbooks/static/"
 )  # Directory to save the sitemap files
 
 # Static URLs to be included in the first sitemap
@@ -104,7 +104,7 @@ if __name__ == "__main__":
         for n in range(1, file_num + 1):
             f.write(f"  <sitemap>\n")
             f.write(
-                f"    <loc>https://findsimilarbooks.com/sitemaps/sitemap_books_{n}.xml</loc>\n"
+                f"    <loc>https://findsimilarbooks.com/sitemap_books_{n}.xml</loc>\n"
             )
             f.write(f"    <lastmod>2024-09-30</lastmod>\n")
             f.write(f"  </sitemap>\n")
