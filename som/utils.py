@@ -14,7 +14,6 @@ from pathlib import Path
 import som.Scaler as Scaler
 import matplotlib.pyplot as plt
 from scipy.ndimage import gaussian_filter1d
-from geopy.geocoders import Nominatim
 from app.similarbooks.main.constants import (
     GRAPHQL_ENDPOINT,
 )

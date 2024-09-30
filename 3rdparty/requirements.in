@@ -25,7 +25,6 @@ scrapeops-scrapy==0.5.4
 python-telegram-bot==20.7
 pytest==8.0.0
 browser-cookie3==0.19.1
-geopy==2.4.1
 beautifulsoup4==4.12.3
 dash==2.18.1
 pillow==10.4.0

@@ -13,7 +13,6 @@ py_library(
     srcs = ["Scaler.py", "utils.py"],
     data = [":models"],
     deps = [
-        requirement("geopy"),
         requirement("requests"),
         requirement("scikit-learn"),
         requirement("pymongo"),
@@ -21,6 +20,16 @@ py_library(
         "//app/similarbooks:similarbooks_config",
     ],
     visibility = ["//visibility:public"],
+)
+
+py_binary(
+    name = "generate_sitemaps",
+    main = "generate_sitemaps.py",
+    srcs = ["generate_sitemaps.py"],
+    deps = [
+        "//app/similarbooks/main:constants",
+        ":utils",
+    ],
 )
 
 py_binary(
