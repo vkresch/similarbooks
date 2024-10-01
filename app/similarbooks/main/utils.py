@@ -21,6 +21,30 @@ average_name_dict = {
     "mieten": "avg_rent_per_square_meter",
 }
 
+TRACKING_ID = "findsimilarbooks-20"
+
+
+def extract_and_add_params(url):
+    if url is None:
+        return
+    parsed_url = urlparse(url)
+
+    # Base part of the new URL
+    base_url = None
+
+    # Check if the path contains "/gp/product" or "/dp"
+    # https://affiliate-program.amazon.com/help/node/topic/GP38PJ6EUR6PFBEC
+    if "/gp/product/" in parsed_url.path:
+        # Extract the product ID using split and indexing
+        product_id = parsed_url.path.split("/gp/product/")[1].split("/")[0]
+        base_url = f"http://{parsed_url.netloc}/gp/product/{product_id}/ref=nosim?tag=findsimilarbooks-20"
+    elif "/dp/" in parsed_url.path:
+        # Extract the product ID using split and indexing
+        product_id = parsed_url.path.split("/dp/")[1].split("/")[0]
+        base_url = f"http://{parsed_url.netloc}/dp/{product_id}/ref=nosim?tag=findsimilarbooks-20"
+
+    return base_url
+
 
 def get_action(path):
     action = None

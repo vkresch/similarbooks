@@ -8,6 +8,15 @@
     <div class="book-details">
         <div class="book-cover">
             <img src="{{ image_file }}" alt="Cover for {{ book['node']['title'] }}" onerror="this.src='/static/default-cover.jpg'">
+            
+            {% if amazon_link %}
+            <!-- Amazon Affiliate Link Button Directly Under the Cover -->
+            <div class="buy-button">
+                <a href="{{ amazon_link }}" class="btn btn-warning" target="_blank" rel="nofollow noopener">
+                    Buy on Amazon.com
+                </a>
+            </div>
+            {% endif %}
         </div>
 
         <div class="book-summary">
@@ -54,12 +63,36 @@
         margin: 20px 0;
         flex-wrap: wrap; /* Ensure flex items wrap on small screens */
     }
+    .book-cover {
+        display: flex;
+        flex-direction: column;
+        align-items: center;
+    }
     .book-cover img {
         max-width: 200px;
         height: auto;
         border-radius: 8px;
         box-shadow: 0px 4px 10px rgba(0, 0, 0, 0.1);
     }
+    
+    /* Amazon Button Styling */
+    .buy-button {
+        margin-top: 15px;
+        display: flex;
+        justify-content: center;
+    }
+    .buy-button a {
+        background-color: #ff9900;
+        color: white;
+        padding: 10px 20px;
+        border-radius: 5px;
+        font-weight: bold;
+        text-decoration: none;
+    }
+    .buy-button a:hover {
+        background-color: #e68a00;
+    }
+
     .book-summary {
         max-width: 600px;
         margin-left: 20px;

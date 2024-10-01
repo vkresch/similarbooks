@@ -39,6 +39,7 @@ DETAILED_BOOK_QUERY = """
         summary,
         title,
         author,
+        amazon_link,
       }}
     }}
   }}

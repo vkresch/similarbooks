@@ -24,7 +24,7 @@ from similarbooks.main.constants import (
     DETAILED_BOOK_QUERY,
 )
 from similarbooks.config import Config
-from similarbooks.main.utils import query_data
+from similarbooks.main.utils import query_data, extract_and_add_params
 from som.utils import model_dict
 
 VERSION = f"v{Config.VERSION_MAJOR}.{Config.VERSION_MINOR}.{Config.VERSION_PATCH}"
@@ -79,9 +79,11 @@ def detailed_book(sha):
             BOOK_QUERY,
             {"book_id_in": prefix_matched_list},
         )
+        amazon_link = extract_and_add_params(book["node"].get("amazon_link"))
         return render_template(
             "detailed.html",
             book=book,
+            amazon_link=amazon_link,
             similar_books=similar_books,
             description=book.get("node").get("summary"),
             image_file=image_file,
