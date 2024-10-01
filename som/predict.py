@@ -41,9 +41,7 @@ word_occurrences = pd.DataFrame(
     columns=["xxxx"],  # Column for the filename to track the document
 ).T  # Transpose to make words columns, filename as row
 hit_histogram = get_hit_histogram(wordcategory_som, word_occurrences)
-hit_df = pd.DataFrame([hit_histogram])
-scaled_df = scaler.transform(hit_df)
-active_map = websom.get_surface_state(data=scaled_df.to_numpy())
+active_map = websom.get_surface_state(data=hit_histogram)
 bmu_nodes = get_top_bmus(websom, active_map, top_n=1)
 
 print(bmu_nodes)

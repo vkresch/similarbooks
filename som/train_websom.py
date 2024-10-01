@@ -88,15 +88,10 @@ else:
     with open(PARENT_DIR / Path(f"models/hit_df.pkl"), "wb") as file_model:
         pickle.dump(hit_df, file_model, pickle.HIGHEST_PROTOCOL)
 
-scaler = Scaler()
-train_data = scaler.scale(hit_df.T).T
 
-with open(PARENT_DIR / Path(f"models/websom_scaler.pkl"), "wb") as file_model:
-    pickle.dump(scaler, file_model, pickle.HIGHEST_PROTOCOL)
-
-logging.info(f"Data shape: {train_data.shape}")
+logging.info(f"Data shape: {hit_df.shape}")
 som = somoclu.Somoclu(
-    100,
+    200,
     100,
     compactsupport=True,
     maptype="toroid",
@@ -108,7 +103,7 @@ som = somoclu.Somoclu(
 t1_start = perf_counter()
 logging.info(f"Training start: {datetime.datetime.now()}")
 som.train(
-    data=train_data.to_numpy(dtype="float32"),
+    data=hit_df.to_numpy(dtype="float32"),
     epochs=500,
     radiuscooling="exponential",
     scalecooling="exponential",
@@ -123,7 +118,7 @@ logging.info(f"Elapsed time for training in seconds: {delta_seconds}")
 logging.info(f"Elapsed time for training in minutes: {delta_seconds / 60.0}")
 logging.info(f"Elapsed time for training in hours: {delta_seconds / 3600.0}")
 
-som.labels = dict(zip(train_data.index, som.bmus))
+som.labels = dict(zip(hit_df.index, som.bmus))
 
 with open(PARENT_DIR / Path(f"models/websom.pkl"), "wb") as file_model:
     som.name = f"websom"

@@ -13,8 +13,6 @@ from som.utils import parse_gutenberg_info, query_debug_display
 
 PARENT_DIR = Path(__file__).resolve().parent
 
-sys.modules["Scaler"] = Scaler
-
 
 # Function to create the SOM plot
 def som_plot(

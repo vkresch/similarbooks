@@ -200,6 +200,14 @@ def gaussian_blur(histogram):
     return gaussian_filter1d(histogram, sigma=sigma)
 
 
+def min_max_scaling(array):
+    # Min-Max scaling
+    min_val = np.min(array)
+    max_val = np.max(array)
+    scaled_array = (array - min_val) / (max_val - min_val)
+    return scaled_array
+
+
 def get_hit_histogram(som, dtm):
     rows, columns = som.umatrix.shape
     node_numbers = rows * columns
@@ -209,8 +217,8 @@ def get_hit_histogram(som, dtm):
         bmu = som.labels.get(term)
         if bmu is not None:
             index = bmu[1] * columns + bmu[0]
-            hit_histogram[index] = dtm[term]
-    return gaussian_blur(hit_histogram)
+            hit_histogram[index] += dtm[term]
+    return min_max_scaling(gaussian_blur(hit_histogram))
 
 
 def get_document_text(filepath):
