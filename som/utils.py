@@ -204,7 +204,14 @@ def min_max_scaling(array):
     # Min-Max scaling
     min_val = np.min(array)
     max_val = np.max(array)
-    scaled_array = (array - min_val) / (max_val - min_val)
+
+    # Check if max_val and min_val are the same to avoid division by zero
+    if max_val == min_val:
+        # Set scaled array to zeros (or any constant value)
+        scaled_array = np.zeros_like(array)
+    else:
+        scaled_array = (array - min_val) / (max_val - min_val)
+
     return scaled_array
 
 
