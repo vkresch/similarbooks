@@ -17,6 +17,16 @@
                 </a>
             </div>
             {% endif %}
+
+            <!-- Project Gutenberg Link Button -->
+            {% if book['node']['spider']=='gutenberg' %}
+            <div class="gutenberg-button">
+                <a href="{{ book['node']['url'] }}" class="btn btn-info" target="_blank" rel="nofollow noopener">
+                    Read on Gutenberg
+                </a>
+            </div>
+            {% endif %}
+
         </div>
 
         <div class="book-summary">
@@ -76,13 +86,13 @@
     }
     
     /* Amazon Button Styling */
-    .buy-button {
+    .buy-button, .gutenberg-button {
         margin-top: 15px;
         display: flex;
         justify-content: center;
     }
-    .buy-button a {
-        background-color: #ff9900;
+    .buy-button a, .gutenberg-button a {
+        background-color: #ff9900; /* Amazon Button Color */
         color: white;
         padding: 10px 20px;
         border-radius: 5px;
@@ -90,7 +100,13 @@
         text-decoration: none;
     }
     .buy-button a:hover {
-        background-color: #e68a00;
+        background-color: #e68a00; /* Amazon Button Hover Color */
+    }
+    .gutenberg-button a {
+        background-color: #007bff; /* Gutenberg Button Color */
+    }
+    .gutenberg-button a:hover {
+        background-color: #0056b3; /* Gutenberg Button Hover Color */
     }
 
     .book-summary {

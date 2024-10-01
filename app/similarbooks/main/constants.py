@@ -36,9 +36,11 @@ DETAILED_BOOK_QUERY = """
       node {{
         book_id,
         sha,
+        spider,
         summary,
         title,
         author,
+        url,
         amazon_link,
       }}
     }}
