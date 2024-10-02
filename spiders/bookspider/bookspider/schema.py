@@ -152,11 +152,11 @@ def update_filter(filters, kwargs):
 def common_resolver(**kwargs):
     per_page = min(kwargs.get("per_page", QUERY_LIMIT), QUERY_LIMIT)
     offset = (kwargs.get("page", 1) - 1) * per_page
-    # order_by = kwargs.get("order_by", "-book_id")
+    order_by = kwargs.get("order_by", "_id")
     filters = update_filter(kwargs.get("filters", {}), kwargs)
     pipeline = [
         {"$match": convert_filters(filters)},  # Apply the filters in the pipeline
-        # {"$sort": get_sort_args(order_by)},  # 1 for ascending, -1 for descending
+        {"$sort": get_sort_args(order_by)},  # 1 for ascending, -1 for descending
         {"$skip": offset},  # Add this stage to skip the first 5 documents
         {"$limit": per_page},  # Add this stage to limit the result to 10 documents
         {"$project": {"_id": 0}},

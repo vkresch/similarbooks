@@ -2,22 +2,28 @@
 {% block content %}
 <br><br>
 <div class="search-section">
-    <form action="{{ url_for('main.index') }}" method="POST" class="search-form">
-        {{ search_form.hidden_tag() }}
+    <form action="{{ url_for('main.index') }}" method="GET" class="search-form">
+        <!-- Don't include CSRF token for GET requests -->
+        {# Render the csrf_token only if the method is POST #}
+        {% if search_form.csrf_token and request.method == 'POST' %}
+            {{ search_form.csrf_token }}
+        {% endif %}
         <fieldset class="form-group">
             <div class="form-group">
                 {% if search_form.title.errors %}
-                    {{ search_form.title(class="form-control form-control-lg is-invalid", placeholder="Search by book title...") }}
+                    <input class="form-control form-control-lg is-invalid" 
+                           name="query" placeholder="Search by book title...">
                     <div class="invalid-feedback">
                         {% for error in search_form.title.errors %}
                             <span>{{ error }}</span>
                         {% endfor %}
                     </div>
                 {% else %}
-                    {{ search_form.title(class="form-control form-control-lg", placeholder="Search by book title...") }}
+                    <input class="form-control form-control-lg" 
+                           name="query" placeholder="Search by book title...">
                 {% endif %}
             </div>
-            {{ search_form.submit(class="btn btn-info btn-lg btn-block") }}
+            <button type="submit" class="btn btn-info btn-lg btn-block">Search</button>
         </fieldset>
     </form>
 </div>

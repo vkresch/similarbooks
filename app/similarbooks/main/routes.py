@@ -45,12 +45,12 @@ def index():
     search_form = LandingSearchForm()
     books = []
     searched = False
-    # TODO: Check title serach for special characters
-    if search_form.validate_on_submit():
+    query = request.args.get("query")
+    if query:
         searched = True
         books = query_data(
             BOOK_QUERY,
-            {"title_contains": search_form.title.data},
+            {"title_contains": query},
         )
     return render_template(
         "home.html", searched=searched, books=books, search_form=search_form

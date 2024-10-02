@@ -111,7 +111,7 @@ def get_data(
 
     query = query_string.format(
         filter_string,
-    ).replace("'", '"')
+    )
 
     logging.debug(f"Query:\n{query}")
 
@@ -144,7 +144,8 @@ def query_data(
     for filter_key, filter_value in filter_dict.items():
         if filter_value is not None:
             if isinstance(filter_value, str):
-                query.append(f"{filter_key}: '{filter_value}'")
+                filter_value = filter_value.replace('"', "'")
+                query.append(f'{filter_key}: "{filter_value}"')
             else:
                 if isinstance(filter_value, bool):
                     filter_value = f"{filter_value}".lower()

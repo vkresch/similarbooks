@@ -285,7 +285,7 @@ UNLIMITED_TRAIN_SOM_QUERY = """
 def query_training_data(per_page=500, limited=True):
     logging.info("Getting data ...")
     query = (
-        TRAIN_SOM_QUERY.format("{summary_exists: true}", per_page).replace("'", '"')
+        TRAIN_SOM_QUERY.format("{summary_exists: true}", per_page)
         if limited
         else UNLIMITED_TRAIN_SOM_QUERY.format("{summary_exists: true}").replace(
             "'", '"'
@@ -321,7 +321,7 @@ def query_debug_display(book_ids):
     logging.info("Getting data ...")
     query = DEBUG_SOM_QUERY.format(
         "{{book_id_in: {0}, summary_exists: true}}".format(book_ids)
-    ).replace("'", '"')
+    )
     logging.info(f"Query: {query}")
     response = requests.post(
         url=GRAPHQL_ENDPOINT,
