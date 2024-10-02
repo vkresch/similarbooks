@@ -50,7 +50,7 @@ def index():
         searched = True
         books = query_data(
             BOOK_QUERY,
-            {"title_contains": query},
+            {"title_contains": query, "language": "English"},
         )
     return render_template(
         "home.html", searched=searched, books=books, search_form=search_form
@@ -77,7 +77,7 @@ def detailed_book(sha):
         prefix_matched_list = [match for match in matched_list if match != book_id]
         similar_books = query_data(
             BOOK_QUERY,
-            {"book_id_in": prefix_matched_list},
+            {"book_id_in": prefix_matched_list, "language": "English"},
         )
         amazon_link = extract_and_add_params(book["node"].get("amazon_link"))
         return render_template(
