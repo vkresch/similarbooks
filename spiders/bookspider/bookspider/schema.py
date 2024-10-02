@@ -53,6 +53,9 @@ class BookFilter(graphene.InputObjectType):
     sha = graphene.String(
         name="sha",
     )
+    language = graphene.String(
+        name="language",
+    )
     spider = graphene.String(
         name="spider",
     )

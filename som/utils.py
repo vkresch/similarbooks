@@ -3,6 +3,7 @@ import sys
 import re
 import pickle
 import pymongo
+import json
 import logging
 import datetime
 import random
@@ -285,10 +286,10 @@ UNLIMITED_TRAIN_SOM_QUERY = """
 def query_training_data(per_page=500, limited=True):
     logging.info("Getting data ...")
     query = (
-        TRAIN_SOM_QUERY.format("{summary_exists: true}", per_page)
+        TRAIN_SOM_QUERY.format('{summary_exists: true, language: "English"}', per_page)
         if limited
-        else UNLIMITED_TRAIN_SOM_QUERY.format("{summary_exists: true}").replace(
-            "'", '"'
+        else UNLIMITED_TRAIN_SOM_QUERY.format(
+            '{summary_exists: true, language: "English"}'
         )
     )
     logging.info(f"Query: {query}")
@@ -298,7 +299,7 @@ def query_training_data(per_page=500, limited=True):
     ).json()
     books = response["data"]["all_books"]["edges"]
     if len(books) == 0:
-        raise Exception(f"No real estate found for the following query: {query}")
+        raise Exception(f"No books found for the following query: {query}")
     return books
 
 
@@ -320,7 +321,7 @@ DEBUG_SOM_QUERY = """
 def query_debug_display(book_ids):
     logging.info("Getting data ...")
     query = DEBUG_SOM_QUERY.format(
-        "{{book_id_in: {0}, summary_exists: true}}".format(book_ids)
+        "{{book_id_in: {0}, summary_exists: true}}".format(json.dumps(book_ids))
     )
     logging.info(f"Query: {query}")
     response = requests.post(
@@ -329,7 +330,7 @@ def query_debug_display(book_ids):
     ).json()
     books = response["data"]["all_books"]["edges"]
     if len(books) == 0:
-        raise Exception(f"No real estate found for the following query: {query}")
+        raise Exception(f"No books found for the following query: {query}")
     return books
 
 

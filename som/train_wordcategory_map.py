@@ -34,16 +34,19 @@ if os.path.exists(PARENT_DIR / Path(f"models/word_occurrences.pkl")) and os.path
     with open(PARENT_DIR / Path(f"models/bigram_occurrences.pkl"), "rb") as file_model:
         bigram_occurrences = pickle.load(file_model)
 else:
-    # summaries_dict = query_training_data(limited=False)
-    # summaries = [item.get("node").get("summary") for item in summaries_dict]
+    summaries_dict = query_training_data(limited=False)
+    summaries = [
+        item.get("node").get("title") + " " + item.get("node").get("summary")
+        for item in summaries_dict
+    ]
 
-    documents_directory = PARENT_DIR / "data/"
-    summaries = load_documents_list(documents_directory, max_documents=55_000)
+    # documents_directory = PARENT_DIR / "data/"
+    # summaries = load_documents_list(documents_directory, max_documents=55_000)
 
     # Step 2: Create a Document-Term Matrix
     vectorizer = CountVectorizer(
-        min_df=200, stop_words="english"
-    )  # min_df=50 removes words occurring <50 times
+        min_df=10, stop_words="english"
+    )  # min_df=10 removes words occurring <50 times
     logging.info(f"Fitting monogram vectorizer ...")
     dtm = vectorizer.fit_transform(summaries)
 
@@ -57,7 +60,7 @@ else:
 
     # Step 1: Create a Bigram Document-Term Matrix
     vectorizer_bigram = CountVectorizer(
-        ngram_range=(2, 2), min_df=200, stop_words="english"
+        ngram_range=(2, 2), min_df=10, stop_words="english"
     )  # Set ngram_range=(2, 2) for bigrams
     logging.info(f"Fitting bigram vectorizer ...")
     dtm_bigram = vectorizer_bigram.fit_transform(summaries)
@@ -96,8 +99,8 @@ logging.info(f"Data shape: {data_train_matrix.shape}")
 # Wordcategory Map 15 x 21
 # https://static.aminer.org/pdf/PDF/000/916/142/websom_self_organizing_maps_of_document_collections.pdf
 som = somoclu.Somoclu(
-    50,
-    50,
+    21,
+    15,
     compactsupport=True,
     maptype="toroid",
     verbose=2,
