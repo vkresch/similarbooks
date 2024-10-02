@@ -74,7 +74,9 @@ def detailed_book(sha):
             np.all(bmu_nodes == som.bmus[:, None, :], axis=2), axis=1
         )
         matched_list = list(pd.Series(som.labels.keys())[matched_indices])
-        prefix_matched_list = [match for match in matched_list if match != book_id]
+        prefix_matched_list = [
+            match.replace("'", '"') for match in matched_list if match != book_id
+        ]
         similar_books = query_data(
             BOOK_QUERY,
             {"book_id_in": prefix_matched_list},
