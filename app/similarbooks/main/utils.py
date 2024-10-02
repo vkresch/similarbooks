@@ -4,6 +4,7 @@ import flask
 import datetime
 import requests
 import pickle
+import json
 from time import perf_counter
 from urllib.parse import urlparse
 from urllib.parse import parse_qs
@@ -149,6 +150,10 @@ def query_data(
             else:
                 if isinstance(filter_value, bool):
                     filter_value = f"{filter_value}".lower()
+
+                if isinstance(filter_value, list):
+                    filter_value = json.dumps(filter_value)
+
                 query.append(f"{filter_key}: {filter_value}")
     filter_string = "{" + ",".join(query) + "}"
     return get_data(
