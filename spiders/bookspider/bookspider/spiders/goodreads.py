@@ -67,11 +67,11 @@ class GoodreadsSpider(scrapy.Spider):
                 "release", datetime.datetime.utcfromtimestamp(release_ms / 1000)
             )
 
-        title = work_details.get("originalTitle")
+        title = book_data.get("title")
         if title:
             l.add_value("title", title)
         else:
-            title = book_data.get("title")
+            title = work_details.get("originalTitle")
             if title:
                 l.add_value("title", title)
 
