@@ -15,10 +15,17 @@ from pathlib import Path
 import som.Scaler as Scaler
 import matplotlib.pyplot as plt
 from scipy.ndimage import gaussian_filter1d
+from scipy.spatial.distance import jensenshannon
 from app.similarbooks.main.constants import (
     GRAPHQL_ENDPOINT,
 )
 from app.similarbooks.config import Config
+
+logging.basicConfig(
+    format="%(asctime)s %(levelname)-8s %(message)s",
+    level=logging.INFO,
+    datefmt="%Y-%m-%d %H:%M:%S",
+)
 
 PARENT_DIR = Path(__file__).resolve().parent
 
@@ -29,7 +36,34 @@ def load_file(path):
     return obj
 
 
-model_dict = {"websom": load_file(f"som/models/websom.pkl")}
+model_dict = {
+    "lda_websom": load_file(f"som/models/lda_websom.pkl"),
+    # "doc_topic_dist": load_file(f"som/models/doc_topic_dist.pkl"),
+    "vectorizer": load_file(f"som/models/lda_vectorizer.pkl"),
+    "lda": load_file(f"som/models/lda.pkl"),
+}
+
+
+def get_similar_books_lda(text, top_n=10):
+    # Vectorize the input text
+    tasks_vectorized = model_dict.get("vectorizer").transform([text])
+    # Get the topic distribution for the input text
+    tasks_topic_dist = model_dict.get("lda").transform(tasks_vectorized)[0]
+
+    # Get document topic distributions
+    df = model_dict.get("doc_topic_dist")
+
+    logging.info("Calculating distances ....")
+    # Calculate Jensen-Shannon distance for all documents at once using NumPy
+    distances = np.apply_along_axis(
+        lambda x: jensenshannon(x, tasks_topic_dist), 1, df.values
+    )
+
+    logging.info("Getting k nearest ....")
+    # Get the top N nearest books
+    k_nearest = np.argsort(distances)[:top_n]
+
+    return list(df.index[k_nearest])
 
 
 # Function to parse the desired information

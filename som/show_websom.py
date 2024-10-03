@@ -69,7 +69,7 @@ matched_list = None
 def load_model():
     global som, matched_list
 
-    with open(PARENT_DIR / Path(f"models/websom.pkl"), "rb") as file_model:
+    with open(PARENT_DIR / Path(f"models/lda_websom.pkl"), "rb") as file_model:
         som = pickle.load(file_model)
 
     SOM_MATRIX = {}

@@ -75,12 +75,6 @@ else:
     with open(PARENT_DIR / Path(f"models/doc_topic_dist.pkl"), "wb") as file_model:
         pickle.dump(doc_topic_dist, file_model, pickle.HIGHEST_PROTOCOL)
 
-doc_dist = doc_topic_dist.iloc[0]
-
-top_n = 10
-distances = doc_topic_dist.apply(lambda x: jensenshannon(x, doc_dist), axis=1)
-k_nearest = distances[distances != 0].nsmallest(n=top_n).index
-k_distances = distances[distances != 0].nsmallest(n=top_n)
 
 # Example query
 three_musketeers_summary = """
@@ -88,6 +82,7 @@ First published in 1844, The Three Musketeers is the most famous of Alexandre Du
 Dumas' swashbuckling epic chronicles the adventures of d'Artagnan, a brash young man from the countryside who journeys to Paris in 1625 hoping to become a musketeer and guard to King Louis XIII. Before long, he finds treachery and court intrigue,and also three boon companions, the daring swordsmen Athos, Porthos, and Aramis. Together, the four strive heroically to defend the honor of their queen against the powerful Cardinal Richelieu and the seductive spy Milady.
 """
 
+top_n = 10
 tasks_vectorized = vectorizer.transform([three_musketeers_summary])
 tasks_topic_dist = lda.transform(tasks_vectorized)[0]
 distances = doc_topic_dist.apply(lambda x: jensenshannon(x, tasks_topic_dist), axis=1)

@@ -51,7 +51,11 @@ else:
         # Generate document-term matrix
         try:
             dtm = vectorizer.transform(
-                [(book.get("node").get("title") or "") + " " + book.get("node").get("summary")]
+                [
+                    (book.get("node").get("title") or "")
+                    + " "
+                    + book.get("node").get("summary")
+                ]
             )  # text should be a single string, hence [text]
         except Exception as e:
             continue

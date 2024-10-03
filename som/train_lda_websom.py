@@ -34,11 +34,11 @@ logging.basicConfig(
 PARENT_DIR = Path(__file__).resolve().parent
 
 summaries_dict = query_training_data(limited=False)
-if os.path.exists(PARENT_DIR / Path(f"models/lda_som_dtm.pkl")):
+if os.path.exists(PARENT_DIR / Path(f"models/lda_dtm.pkl")):
     logging.info(f"Loading already encoded DTM models ...")
-    with open(PARENT_DIR / Path(f"models/lda_som_vectorizer.pkl"), "rb") as file_model:
+    with open(PARENT_DIR / Path(f"models/lda_vectorizer.pkl"), "rb") as file_model:
         vectorizer = pickle.load(file_model)
-    with open(PARENT_DIR / Path(f"models/lda_som_dtm.pkl"), "rb") as file_model:
+    with open(PARENT_DIR / Path(f"models/lda_dtm.pkl"), "rb") as file_model:
         dtm = pickle.load(file_model)
 else:
     summaries = [
@@ -53,13 +53,13 @@ else:
     logging.info(f"Fitting monogram vectorizer ...")
     dtm = vectorizer.fit_transform(summaries)
 
-    with open(PARENT_DIR / Path(f"models/lda_som_vectorizer.pkl"), "wb") as file_model:
+    with open(PARENT_DIR / Path(f"models/lda_vectorizer.pkl"), "wb") as file_model:
         pickle.dump(vectorizer, file_model, pickle.HIGHEST_PROTOCOL)
 
-    with open(PARENT_DIR / Path(f"models/lda_som_dtm.pkl"), "wb") as file_model:
+    with open(PARENT_DIR / Path(f"models/lda_dtm.pkl"), "wb") as file_model:
         pickle.dump(dtm, file_model, pickle.HIGHEST_PROTOCOL)
 
-if os.path.exists(PARENT_DIR / Path(f"models/lda_som.pkl")):
+if os.path.exists(PARENT_DIR / Path(f"models/lda.pkl")):
     logging.info(f"Loading already encoded LDA models ...")
     with open(PARENT_DIR / Path(f"models/lda.pkl"), "rb") as file_model:
         lda = pickle.load(file_model)
@@ -67,13 +67,22 @@ else:
     lda = LatentDirichletAllocation(n_components=100, random_state=42)
     lda.fit(dtm)
 
-    with open(PARENT_DIR / Path(f"models/lda_som.pkl"), "wb") as file_model:
+    with open(PARENT_DIR / Path(f"models/lda.pkl"), "wb") as file_model:
         pickle.dump(lda, file_model, pickle.HIGHEST_PROTOCOL)
 
-doc_topic_dist = pd.DataFrame(
-    lda.transform(dtm),
-    index=[item.get("node").get("book_id") for item in summaries_dict],
-)
+
+if os.path.exists(PARENT_DIR / Path(f"models/doc_topic_dist.pkl")):
+    logging.info(f"Loading already encoded LDA models ...")
+    with open(PARENT_DIR / Path(f"models/doc_topic_dist.pkl"), "rb") as file_model:
+        doc_topic_dist = pickle.load(file_model)
+else:
+    doc_topic_dist = pd.DataFrame(
+        lda.transform(dtm),
+        index=[item.get("node").get("book_id") for item in summaries_dict],
+    )
+
+    with open(PARENT_DIR / Path(f"models/doc_topic_dist.pkl"), "wb") as file_model:
+        pickle.dump(doc_topic_dist, file_model, pickle.HIGHEST_PROTOCOL)
 
 logging.info(f"Data shape: {doc_topic_dist.shape}")
 som = somoclu.Somoclu(
