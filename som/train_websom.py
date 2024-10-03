@@ -43,16 +43,19 @@ else:
     logging.info(f"Generating hit histogram ...")
     summaries = query_training_data(limited=False)
     hit_data = []  # To collect rows for hit_df
-    for book in tqdm(summaries):
-        # Vectorize the text using CountVectorizer
-        vectorizer = CountVectorizer(
-            min_df=1, stop_words="english"
-        )  # Adjust min_df to remove infrequent words if necessary
 
+    with open(PARENT_DIR / Path(f"models/som_vectorizer.pkl"), "rb") as file_model:
+        vectorizer = pickle.load(file_model)
+
+    for book in tqdm(summaries):
         # Generate document-term matrix
         try:
-            dtm = vectorizer.fit_transform(
-                [book.get("node").get("title") + " " + book.get("node").get("summary")]
+            dtm = vectorizer.transform(
+                [
+                    (book.get("node").get("title") or "")
+                    + " "
+                    + book.get("node").get("summary")
+                ]
             )  # text should be a single string, hence [text]
         except Exception as e:
             continue

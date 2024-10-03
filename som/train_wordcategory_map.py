@@ -36,7 +36,7 @@ if os.path.exists(PARENT_DIR / Path(f"models/word_occurrences.pkl")) and os.path
 else:
     summaries_dict = query_training_data(limited=False)
     summaries = [
-        item.get("node").get("title") + " " + item.get("node").get("summary")
+        (item.get("node").get("title") or "") + " " + item.get("node").get("summary")
         for item in summaries_dict
     ]
 
@@ -49,6 +49,9 @@ else:
     )  # min_df=10 removes words occurring <50 times
     logging.info(f"Fitting monogram vectorizer ...")
     dtm = vectorizer.fit_transform(summaries)
+
+    with open(PARENT_DIR / Path(f"models/som_vectorizer.pkl"), "wb") as file_model:
+        pickle.dump(vectorizer, file_model, pickle.HIGHEST_PROTOCOL)
 
     # Step 4: Sum up the word occurrences across all summaries
     word_occurrences = pd.DataFrame(
