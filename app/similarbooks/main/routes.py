@@ -22,6 +22,7 @@ from similarbooks.main.forms import (
 from similarbooks.main.constants import (
     BOOK_QUERY,
     DETAILED_BOOK_QUERY,
+    MIN_SUMMARY_LENGTH,
 )
 from similarbooks.config import Config
 from similarbooks.main.utils import query_data, extract_and_add_params
@@ -50,7 +51,11 @@ def index():
         searched = True
         books = query_data(
             BOOK_QUERY,
-            {"title_contains": query, "language": "English"},
+            {
+                "title_contains": query,
+                "language": "English",
+                "summary_length_gte": MIN_SUMMARY_LENGTH,
+            },
         )
     return render_template(
         "home.html", searched=searched, books=books, search_form=search_form
@@ -70,7 +75,11 @@ def detailed_book(sha):
         book_id = book["node"]["book_id"]
         image_file = url_for("static", filename=f"covers/{sha}.png")
         tasks_vectorized = model_dict["vectorizer"].transform(
-            [(book["node"].get("title") or "") + " " + (book["node"].get("summary") or "")]
+            [
+                (book["node"].get("title") or "")
+                + " "
+                + (book["node"].get("summary") or "")
+            ]
         )
         tasks_topic_dist = model_dict["lda"].transform(tasks_vectorized)[0]
         active_map = som.get_surface_state(data=np.array([tasks_topic_dist]))
@@ -86,7 +95,11 @@ def detailed_book(sha):
         prefix_matched_list = [match for match in matched_list if match != book_id]
         similar_books = query_data(
             BOOK_QUERY,
-            {"book_id_in": prefix_matched_list, "language": "English"},
+            {
+                "book_id_in": prefix_matched_list,
+                "language": "English",
+                "summary_length_gte": MIN_SUMMARY_LENGTH,
+            },
         )
         amazon_link = extract_and_add_params(book["node"].get("amazon_link"))
         return render_template(

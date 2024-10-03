@@ -7,6 +7,8 @@ GRAPHQL_ENDPOINT = "http://127.0.0.1:8000/graphql"
 
 GUTENBERG_PREFIX = "gb_"
 
+MIN_SUMMARY_LENGTH = 400
+
 IGNORE_FIELDS_FOR_FILTER = [
     "model",
     "document",

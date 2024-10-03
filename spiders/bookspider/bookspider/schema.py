@@ -46,6 +46,10 @@ class BookFilter(graphene.InputObjectType):
     summary__exists = graphene.Boolean(
         name="summary_exists",
     )
+    summary__length_gte = graphene.Int(
+        name="summary_length_gte",
+        description="Filter books with summaries that have at least the specified number of characters.",
+    )
     author = graphene.String(
         name="author",
         description="Book has to have ONE of the provided typ",
@@ -145,7 +149,7 @@ def update_filter(filters, kwargs):
             continue
 
         # Enable regex search for those fields
-        if key in ["title"]:
+        if key in ["title", "summary"]:
             key = f"{key}__contains"
 
         filters[key] = value
@@ -157,13 +161,50 @@ def common_resolver(**kwargs):
     offset = (kwargs.get("page", 1) - 1) * per_page
     order_by = kwargs.get("order_by", "_id")
     filters = update_filter(kwargs.get("filters", {}), kwargs)
+
+    # Check if the `summary__length_gte` filter is provided
+    summary_length_filter = filters.pop("summary__length_gte", None)
+
     pipeline = [
-        {"$match": convert_filters(filters)},  # Apply the filters in the pipeline
-        {"$sort": get_sort_args(order_by)},  # 1 for ascending, -1 for descending
-        {"$skip": offset},  # Add this stage to skip the first 5 documents
-        {"$limit": per_page},  # Add this stage to limit the result to 10 documents
-        {"$project": {"_id": 0}},
+        {"$match": convert_filters(filters)},  # Apply other filters
     ]
+
+    # If a summary length filter is provided, apply it
+    if summary_length_filter is not None:
+        pipeline.append(
+            {
+                "$match": {
+                    "$and": [
+                        {"summary": {"$exists": True}},  # Check if summary exists
+                        {
+                            "$expr": {
+                                "$gte": [
+                                    {
+                                        "$strLenCP": {
+                                            "$ifNull": [
+                                                "$summary",
+                                                "",
+                                            ]  # Ensure summary is not null
+                                        }
+                                    },
+                                    summary_length_filter,
+                                ]
+                            }
+                        },
+                    ]
+                }
+            }
+        )
+
+    pipeline.extend(
+        [
+            {"$sort": get_sort_args(order_by)},  # Sorting
+            {"$skip": offset},  # Pagination: skip first `offset` documents
+            {"$limit": per_page},  # Limit the number of documents returned
+            {"$project": {"_id": 0}},  # Don't return the `_id` field
+        ]
+    )
+
     return list(
         map(
             lambda prop: transform(prop, kwargs.get("document")),
