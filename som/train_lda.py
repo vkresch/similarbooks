@@ -1,6 +1,5 @@
 import os
 import logging
-import somoclu
 import numpy as np
 import datetime
 import pandas as pd
@@ -36,7 +35,7 @@ if os.path.exists(PARENT_DIR / Path(f"models/lda_dtm.pkl")):
         dtm = pickle.load(file_model)
 else:
     summaries = [
-        item.get("node").get("title") + " " + item.get("node").get("summary")
+        (item.get("node").get("title") or "") + " " + item.get("node").get("summary")
         for item in summaries_dict
     ]
 

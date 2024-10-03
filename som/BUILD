@@ -100,6 +100,7 @@ py_binary(
     main = "train_lda.py",
     srcs = ["train_lda.py"],
     deps = [
+        requirement("somoclu"),
         requirement("numpy"),
         requirement("tqdm"),
         requirement("pandas"),

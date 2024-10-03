@@ -36,7 +36,7 @@ if os.path.exists(PARENT_DIR / Path(f"models/word_occurrences.pkl")) and os.path
 else:
     summaries_dict = query_training_data(limited=False)
     summaries = [
-        item.get("node").get("title") + " " + item.get("node").get("summary")
+        (item.get("node").get("title") or "") + " " + item.get("node").get("summary")
         for item in summaries_dict
     ]
 
