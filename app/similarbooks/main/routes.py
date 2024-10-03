@@ -70,7 +70,7 @@ def detailed_book(sha):
         book_id = book["node"]["book_id"]
         image_file = url_for("static", filename=f"covers/{sha}.png")
         tasks_vectorized = model_dict["vectorizer"].transform(
-            [book["node"].get("title") + " " + book["node"].get("summary")]
+            [(book["node"].get("title") or "") + " " + (book["node"].get("summary") or "")]
         )
         tasks_topic_dist = model_dict["lda"].transform(tasks_vectorized)[0]
         active_map = som.get_surface_state(data=np.array([tasks_topic_dist]))
