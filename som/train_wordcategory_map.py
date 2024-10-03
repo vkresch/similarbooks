@@ -50,6 +50,9 @@ else:
     logging.info(f"Fitting monogram vectorizer ...")
     dtm = vectorizer.fit_transform(summaries)
 
+    with open(PARENT_DIR / Path(f"models/som_vectorizer.pkl"), "wb") as file_model:
+        pickle.dump(vectorizer, file_model, pickle.HIGHEST_PROTOCOL)
+
     # Step 4: Sum up the word occurrences across all summaries
     word_occurrences = pd.DataFrame(
         dtm.sum(axis=0).flatten(), columns=vectorizer.get_feature_names_out()

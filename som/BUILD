@@ -96,6 +96,33 @@ py_binary(
 )
 
 py_binary(
+    name = "train_lda",
+    main = "train_lda.py",
+    srcs = ["train_lda.py"],
+    deps = [
+        requirement("numpy"),
+        requirement("tqdm"),
+        requirement("pandas"),
+        "//app/similarbooks/main:constants",
+        ":utils",
+    ],
+)
+
+py_binary(
+    name = "train_lda_websom",
+    main = "train_lda_websom.py",
+    srcs = ["train_lda_websom.py"],
+    deps = [
+        requirement("somoclu"),
+        requirement("numpy"),
+        requirement("tqdm"),
+        requirement("pandas"),
+        "//app/similarbooks/main:constants",
+        ":utils",
+    ],
+)
+
+py_binary(
     name = "train_wordcategory_map",
     main = "train_wordcategory_map.py",
     srcs = ["train_wordcategory_map.py"],
