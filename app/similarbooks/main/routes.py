@@ -40,11 +40,32 @@ def ping():
     return {"message": "alive"}
 
 
+def extract_distinct_books(books, ignore_title=None):
+    # Dictionary to store unique titles with the highest ratings_count
+    unique_books = {}
+
+    # Iterate through the list
+    for book in books:
+        title = book["node"]["title"]
+        ratings_count = book["node"]["ratings_count"]
+
+        # If title is not in the dictionary or the current ratings_count is higher, update the dictionary
+        if (
+            title not in unique_books
+            or ratings_count > unique_books[title]["node"]["ratings_count"]
+        ) and title != ignore_title:
+            unique_books[title] = book
+
+    # Convert the result back to a list
+    result = list(unique_books.values())
+    return result
+
+
 @main.route("/home", methods=["POST", "GET"])
 @main.route("/", methods=["POST", "GET"])
 def index():
     search_form = LandingSearchForm()
-    books = []
+    unique_books = []
     searched = False
     query = request.args.get("query")
     if query:
@@ -57,8 +78,9 @@ def index():
                 "summary_length_gte": MIN_SUMMARY_LENGTH,
             },
         )
+        unique_books = extract_distinct_books(books)
     return render_template(
-        "home.html", searched=searched, books=books, search_form=search_form
+        "home.html", searched=searched, books=unique_books, search_form=search_form
     )
 
 
@@ -101,12 +123,15 @@ def detailed_book(sha):
                 "summary_length_gte": MIN_SUMMARY_LENGTH,
             },
         )
+        unique_similar_books = extract_distinct_books(
+            similar_books, ignore_title=book["node"].get("title")
+        )
         amazon_link = extract_and_add_params(book["node"].get("amazon_link"))
         return render_template(
             "detailed.html",
             book=book,
             amazon_link=amazon_link,
-            similar_books=similar_books,
+            similar_books=unique_similar_books,
             description=book.get("node").get("summary"),
             image_file=image_file,
             title=f"{book.get('node').get('title')} by {book.get('node').get('author')}",

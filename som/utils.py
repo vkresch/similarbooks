@@ -320,10 +320,12 @@ UNLIMITED_TRAIN_SOM_QUERY = """
 def query_training_data(per_page=500, limited=True):
     logging.info("Getting data ...")
     query = (
-        TRAIN_SOM_QUERY.format('{summary_exists: true, language: "English"}', per_page)
+        TRAIN_SOM_QUERY.format(
+            '{summary_length_gte: 400, language: "English"}', per_page
+        )
         if limited
         else UNLIMITED_TRAIN_SOM_QUERY.format(
-            '{summary_exists: true, language: "English"}'
+            '{summary_length_gte: 400, language: "English"}'
         )
     )
     logging.info(f"Query: {query}")

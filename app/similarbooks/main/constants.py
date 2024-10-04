@@ -26,6 +26,7 @@ BOOK_QUERY = """
         sha,
         title,
         author,
+        ratings_count,
       }}
     }}
   }}
