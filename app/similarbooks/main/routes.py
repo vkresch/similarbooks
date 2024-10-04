@@ -49,12 +49,20 @@ def extract_distinct_books(books, ignore_title=None):
         title = book["node"]["title"]
         ratings_count = book["node"]["ratings_count"]
 
-        # If title is not in the dictionary or the current ratings_count is higher, update the dictionary
-        if (
-            title not in unique_books
-            or ratings_count > unique_books[title]["node"]["ratings_count"]
-        ) and title != ignore_title:
+        if title is None or title == ignore_title:
+            continue
+
+        title = title.strip()
+
+        # Add to unique_books if title is not in dictionary yet
+        if title not in unique_books:
             unique_books[title] = book
+        # If ratings_count is not None, compare and update if higher
+        elif ratings_count is not None:
+            existing_ratings = unique_books[title]["node"]["ratings_count"]
+            # Update if the existing ratings_count is None or current ratings_count is higher
+            if existing_ratings is None or ratings_count > existing_ratings:
+                unique_books[title] = book
 
     # Convert the result back to a list
     result = list(unique_books.values())
