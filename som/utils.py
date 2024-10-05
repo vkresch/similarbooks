@@ -290,6 +290,28 @@ def load_documents_dict(directory, max_documents=40000):
     return documents
 
 
+def load_documents_graphql(directory, max_documents=100_000):
+    logging.info(f"Loading documents recursively from {directory}...")
+    filepaths = list(Path(directory).rglob("*.txt"))
+    random.shuffle(filepaths)
+    limited_filepaths = filepaths[:max_documents]
+    documents = [
+        {
+            "node": {
+                "book_id": (
+                    f"gb_{os.path.splitext(os.path.basename(filepath))[0]}"
+                    if "gutenberg_books" in str(filepath)
+                    else os.path.splitext(os.path.basename(filepath))[0]
+                ),
+                "title": "",
+                "summary": get_document_text(filepath),
+            }
+        }
+        for filepath in tqdm(limited_filepaths)
+    ]
+    return documents
+
+
 TRAIN_SOM_QUERY = """
 {{
   all_books (filters: {0}, per_page: {1}) {{
@@ -321,11 +343,12 @@ def query_training_data(per_page=500, limited=True):
     logging.info("Getting data ...")
     query = (
         TRAIN_SOM_QUERY.format(
-            '{summary_length_gte: 400, language: "English"}', per_page
+            '{summary_length_gte: 400, language: "English", spider: "goodreads"}',
+            per_page,
         )
         if limited
         else UNLIMITED_TRAIN_SOM_QUERY.format(
-            '{summary_length_gte: 400, language: "English"}'
+            '{summary_length_gte: 400, language: "English", spider: "goodreads"}'
         )
     )
     logging.info(f"Query: {query}")

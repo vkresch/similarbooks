@@ -15,6 +15,7 @@ from som.utils import (
     encode_kaski,
     preprocess_text,
     load_documents_dict,
+    load_documents_graphql,
     get_hit_histogram,
     draw_barchart,
     query_training_data,
@@ -30,9 +31,13 @@ logging.basicConfig(
 
 PARENT_DIR = Path(__file__).resolve().parent
 
+documents = load_documents_graphql(PARENT_DIR / "data")
 summaries_dict = query_training_data(limited=False)
+summaries_dict.extend(documents)
 summaries = [
-    item.get("node").get("title") + " " + item.get("node").get("summary")
+    (item.get("node").get("title") or "")
+    + " "
+    + (item.get("node").get("summary") or "")
     for item in summaries_dict
 ]
 
@@ -41,7 +46,7 @@ vectorizer = CountVectorizer(
     min_df=2, stop_words="english"
 )  # min_df=10 removes words occurring <50 times
 logging.info(f"Fitting monogram vectorizer ...")
-dtm = vectorizer.fit_transform(summaries)
+dtm = vectorizer.fit_transform(tqdm(summaries))
 
 with open(PARENT_DIR / Path(f"models/lda_vectorizer.pkl"), "wb") as file_model:
     pickle.dump(vectorizer, file_model, pickle.HIGHEST_PROTOCOL)
