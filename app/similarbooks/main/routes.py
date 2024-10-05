@@ -7,6 +7,9 @@ from urllib.parse import urlparse
 from urllib.parse import parse_qs
 import requests
 import hashlib
+import json
+import plotly
+import plotly.graph_objects as go
 from flask import (
     render_template,
     request,
@@ -38,6 +41,73 @@ main = Blueprint("main", __name__)
 @main.route("/ping")
 def ping():
     return {"message": "alive"}
+
+
+def som_plot(
+    data,
+    title,
+    dimname="umatrix",
+    colorscale="portland",
+    reversescale=False,
+    area_points=None,
+    highlight_point=None,  # Expects a list or array like [[X, Y]]
+):
+    feature_title = f"{dimname}"
+    fig = go.Figure(
+        go.Contour(
+            z=data[dimname],
+            contours_coloring="heatmap",
+            colorscale=colorscale,
+            colorbar=dict(
+                title=feature_title,  # Title of the colorbar
+                titleside="top",  # Position title above the colorbar
+                len=0.5,  # Length of the colorbar
+                thickness=20,  # Thickness of the colorbar
+                x=0.5,  # Center the colorbar horizontally
+                y=-0.1,  # Position the colorbar just below the plot
+                xanchor="center",  # Anchor the colorbar to the center of x
+                yanchor="top",  # Anchor the colorbar to the top of y
+            ),
+            connectgaps=False,
+            showscale=False,
+            showlegend=False,
+            reversescale=reversescale,
+            hoverinfo="none",  # Disable hover popup for the contour
+        )
+    )
+
+    if highlight_point is not None:
+        # Ensure highlight_point is a list or convert it from numpy array
+        highlight_point = np.array(highlight_point).tolist()
+
+        # Check if highlight_point is in the format [[X, Y]]
+        if len(highlight_point) == 1 and len(highlight_point[0]) == 2:
+            x_coord = highlight_point[0][0]
+            y_coord = highlight_point[0][1]
+
+            # Add a single scatter point for the highlight_point (X, Y)
+            fig.add_trace(
+                go.Scatter(
+                    x=[x_coord],  # X coordinate
+                    y=[y_coord],  # Y coordinate
+                    mode="markers+text",  # Show marker with text
+                    marker=dict(color="red", size=12, symbol="circle"),
+                    textposition="top right",  # Position the label
+                    name="Highlight Point",
+                    hoverinfo="none",  # Disable hover popup for highlight point
+                )
+            )
+
+    fig.update_layout(
+        margin=dict(l=20, r=20, t=20, b=40),  # Adjust bottom margin for colorbar
+        plot_bgcolor="rgba(0, 0, 0, 0)",
+        paper_bgcolor="rgba(0, 0, 0, 0)",
+        font_color="rgba(255, 255, 255, 1)",
+        xaxis=dict(showticklabels=False),  # Remove x-axis numbers
+        yaxis=dict(showticklabels=False),  # Remove y-axis numbers
+    )
+
+    return fig
 
 
 def extract_distinct_books(books, ignore_title=None):
@@ -114,13 +184,24 @@ def detailed_book(sha):
         tasks_topic_dist = model_dict["lda"].transform(tasks_vectorized)[0]
         active_map = som.get_surface_state(data=np.array([tasks_topic_dist]))
         bmu_nodes = get_top_bmus(som, active_map, top_n=1)
-        # bmu_nodes_lookup = som.labels.get(book_id)
+        # bmu_nodes = som.labels.get(book_id)
         matched_indices = np.any(
             np.all(bmu_nodes == som.bmus[:, None, :], axis=2), axis=1
         )
         matched_list = list(pd.Series(som.labels.keys())[matched_indices])
+        SOM_MATRIX = {}
+        SOM_MATRIX["similarity"] = som.umatrix
+        fig = som_plot(
+            SOM_MATRIX,
+            book["node"].get("title"),
+            "similarity",
+            highlight_point=bmu_nodes,
+        )
+        graphJSON = json.dumps(fig, cls=plotly.utils.PlotlyJSONEncoder)
         # matched_list = get_similar_books_lda(
-        #     book["node"].get("title") + " " + book["node"].get("summary")
+        #     (book["node"].get("title") or "")
+        #     + " "
+        #     + (book["node"].get("summary") or "")
         # )
         prefix_matched_list = [match for match in matched_list if match != book_id]
         similar_books = query_data(
@@ -143,6 +224,7 @@ def detailed_book(sha):
             description=book.get("node").get("summary"),
             image_file=image_file,
             title=f"{book.get('node').get('title')} by {book.get('node').get('author')}",
+            graphJSON=graphJSON,
         )
     return render_template("not_found.html")
 

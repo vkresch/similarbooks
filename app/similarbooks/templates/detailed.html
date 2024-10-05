@@ -57,7 +57,21 @@
     {% else %}
     <h3>No Similar Books Found</h3>
     {% endif %}
+    <br>
+    <h3>Position of Books</h3>
+    <div id="plotly-div"></div>
 </div>
+
+<script type="text/javascript">
+    var graph = {{ graphJSON | safe }};
+    var layout = Object.assign({}, graph.layout, { autosize: true }); // Enable responsive resizing
+    Plotly.newPlot('plotly-div', graph.data, layout, {responsive: true});
+
+    // Add a window resize event listener
+    window.addEventListener('resize', function() {
+        Plotly.Plots.resize(document.getElementById('plotly-div'));
+    });
+</script>
 
 <!-- Responsive Styling -->
 <style>
@@ -126,6 +140,14 @@
             margin-top: 20px;
             text-align: left; /* Center-align the text on mobile */
         }
+    }
+
+    /* Plotly Div Styling */
+    #plotly-div {
+        width: 100%; /* Ensure the div takes full width */
+        max-width: 800px; /* Set a max width to ensure it doesn't stretch too much */
+        margin: 0 auto; /* Center the div */
+        height: auto; /* Let the height adjust automatically */
     }
 
     /* Similar Books Section */
