@@ -202,9 +202,7 @@ def train_gensim_lda(
         with open(PARENT_DIR / Path(f"models/lda_corpus.pkl"), "rb") as file_model:
             corpus = pickle.load(file_model)
     else:
-        if not os.path.exists(
-            PARENT_DIR / Path(f"models/lda_corpus.mm")
-        ):
+        if not os.path.exists(PARENT_DIR / Path(f"models/lda_corpus.mm")):
             logging.info(f"Preparing summaries ...")
             summaries = [
                 (item.get("node").get("title") or "")
@@ -232,13 +230,13 @@ def train_gensim_lda(
         with open(PARENT_DIR / Path(f"models/lda_gensim.pkl"), "rb") as file_model:
             lda = pickle.load(file_model)
     else:
-        if os.path.exists(
-            PARENT_DIR / Path(f"models/lda_dictionary.pkl")
-        ):
+        if os.path.exists(PARENT_DIR / Path(f"models/lda_dictionary.pkl")):
             logging.info(f"Loading dictionary ...")
-            with open(PARENT_DIR / Path(f"models/lda_dictionary.pkl"), "rb") as file_model:
+            with open(
+                PARENT_DIR / Path(f"models/lda_dictionary.pkl"), "rb"
+            ) as file_model:
                 dictionary = pickle.load(file_model)
-        
+
         logging.info(f"Training Gensim LDA model ...")
         lda = LdaMulticore(
             corpus=corpus,
