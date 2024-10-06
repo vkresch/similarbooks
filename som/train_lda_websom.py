@@ -20,6 +20,7 @@ from som.utils import (
     draw_barchart,
     query_training_data,
 )
+from som.train_lda import train_lda, train_gensim_lda
 import matplotlib.pyplot as plt
 
 
@@ -31,43 +32,14 @@ logging.basicConfig(
 
 PARENT_DIR = Path(__file__).resolve().parent
 
-documents = load_documents_graphql(PARENT_DIR / "data")
-summaries_dict = query_training_data(limited=False)
-summaries_dict.extend(documents)
-summaries = [
-    (item.get("node").get("title") or "")
-    + " "
-    + (item.get("node").get("summary") or "")
-    for item in summaries_dict
-]
-
-# Step 2: Create a Document-Term Matrix
-vectorizer = CountVectorizer(
-    min_df=2, stop_words="english"
-)  # min_df=10 removes words occurring <50 times
-logging.info(f"Fitting monogram vectorizer ...")
-dtm = vectorizer.fit_transform(tqdm(summaries))
-
-with open(PARENT_DIR / Path(f"models/lda_vectorizer.pkl"), "wb") as file_model:
-    pickle.dump(vectorizer, file_model, pickle.HIGHEST_PROTOCOL)
-
-with open(PARENT_DIR / Path(f"models/lda_dtm.pkl"), "wb") as file_model:
-    pickle.dump(dtm, file_model, pickle.HIGHEST_PROTOCOL)
-
-lda = LatentDirichletAllocation(n_components=315, random_state=42)
-lda.fit(dtm)
-
-with open(PARENT_DIR / Path(f"models/lda.pkl"), "wb") as file_model:
-    pickle.dump(lda, file_model, pickle.HIGHEST_PROTOCOL)
-
-
-doc_topic_dist = pd.DataFrame(
-    lda.transform(dtm),
-    index=[item.get("node").get("book_id") for item in summaries_dict],
+# doc_topic_dist = train_lda()
+doc_topic_dist = train_gensim_lda(
+    topic_n=100,
+    use_cache_lda_summaries_dict=False,
+    use_cache_lda_corpus=False,
+    use_cache_lda=False,
+    use_cache_doc_topic_dist=False,
 )
-
-with open(PARENT_DIR / Path(f"models/doc_topic_dist.pkl"), "wb") as file_model:
-    pickle.dump(doc_topic_dist, file_model, pickle.HIGHEST_PROTOCOL)
 
 logging.info(f"Data shape: {doc_topic_dist.shape}")
 som = somoclu.Somoclu(

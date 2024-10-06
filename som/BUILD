@@ -10,14 +10,18 @@ filegroup(
 
 py_library(
     name = "utils",
-    srcs = ["Scaler.py", "utils.py"],
+    srcs = ["Scaler.py", "utils.py", "train_lda.py"],
     data = [":models"],
     deps = [
         requirement("requests"),
         requirement("scikit-learn"),
         requirement("pymongo"),
         requirement("tqdm"),
+        requirement("somoclu"),
+        requirement("gensim"),
+        requirement("pandas"),
         "//app/similarbooks:similarbooks_config",
+        "//app/similarbooks/main:constants",
     ],
     visibility = ["//visibility:public"],
 )
@@ -91,20 +95,6 @@ py_binary(
         requirement("pillow"),
         "//app/similarbooks/main:constants",
         "//app/similarbooks:similarbooks_config",
-        ":utils",
-    ],
-)
-
-py_binary(
-    name = "train_lda",
-    main = "train_lda.py",
-    srcs = ["train_lda.py"],
-    deps = [
-        requirement("somoclu"),
-        requirement("numpy"),
-        requirement("tqdm"),
-        requirement("pandas"),
-        "//app/similarbooks/main:constants",
         ":utils",
     ],
 )
