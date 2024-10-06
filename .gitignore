@@ -18,4 +18,6 @@ bazel-*
 *.pem
 *.lock
 *.pkl
+*.mm
+*.mm.index
 sitemap_*.xml

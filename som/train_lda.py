@@ -5,6 +5,7 @@ import datetime
 import pandas as pd
 from gensim.corpora import Dictionary, MmCorpus
 from gensim.models import LdaMulticore
+from gensim.utils import simple_preprocess
 from sklearn.feature_extraction.text import CountVectorizer
 from sklearn.feature_extraction import text
 from sklearn.decomposition import LatentDirichletAllocation
@@ -163,7 +164,7 @@ def build_dictionary_and_corpus(documents, dictionary_path, corpus_path):
             yield dictionary.doc2bow(doc)
 
     # Save the corpus using MmCorpus (efficient sparse format on disk)
-    MmCorpus.serialize(corpus_path, generate_corpus())
+    MmCorpus.serialize(str(corpus_path), generate_corpus())
 
 
 def train_gensim_lda(
@@ -197,32 +198,30 @@ def train_gensim_lda(
     if use_cache_lda_corpus and os.path.exists(
         PARENT_DIR / Path(f"models/lda_corpus.pkl")
     ):
-        logging.info(f"Loading cached Gensim corpus and dictionary ...")
-        with open(PARENT_DIR / Path(f"models/lda_dictionary.pkl"), "rb") as file_model:
-            dictionary = pickle.load(file_model)
+        logging.info(f"Loading cached Gensim corpus ...")
         with open(PARENT_DIR / Path(f"models/lda_corpus.pkl"), "rb") as file_model:
             corpus = pickle.load(file_model)
     else:
-        logging.info(f"Preparing summaries ...")
-        summaries = [
-            (item.get("node").get("title") or "")
-            + " "
-            + item.get("node").get("summary")
-            for item in summaries_dict
-        ]
+        if not os.path.exists(
+            PARENT_DIR / Path(f"models/lda_corpus.mm")
+        ):
+            logging.info(f"Preparing summaries ...")
+            summaries = [
+                (item.get("node").get("title") or "")
+                + " "
+                + item.get("node").get("summary")
+                for item in summaries_dict
+            ]
 
-        # Build dictionary and corpus using memory-efficient method
-        build_dictionary_and_corpus(
-            summaries,
-            PARENT_DIR / Path(f"models/lda_dictionary.pkl"),
-            PARENT_DIR / Path(f"models/lda_corpus.mm"),
-        )
+            # Build dictionary and corpus using memory-efficient method
+            build_dictionary_and_corpus(
+                summaries,
+                PARENT_DIR / Path(f"models/lda_dictionary.pkl"),
+                PARENT_DIR / Path(f"models/lda_corpus.mm"),
+            )
 
         # Load the generated corpus for further processing
-        corpus = MmCorpus(PARENT_DIR / Path(f"models/lda_corpus.mm"))
-
-        with open(PARENT_DIR / Path(f"models/lda_dictionary.pkl"), "wb") as file_model:
-            pickle.dump(dictionary, file_model, pickle.HIGHEST_PROTOCOL)
+        corpus = MmCorpus(str(PARENT_DIR / Path(f"models/lda_corpus.mm")))
 
         with open(PARENT_DIR / Path(f"models/lda_corpus.pkl"), "wb") as file_model:
             pickle.dump(corpus, file_model, pickle.HIGHEST_PROTOCOL)
@@ -233,6 +232,13 @@ def train_gensim_lda(
         with open(PARENT_DIR / Path(f"models/lda_gensim.pkl"), "rb") as file_model:
             lda = pickle.load(file_model)
     else:
+        if os.path.exists(
+            PARENT_DIR / Path(f"models/lda_dictionary.pkl")
+        ):
+            logging.info(f"Loading dictionary ...")
+            with open(PARENT_DIR / Path(f"models/lda_dictionary.pkl"), "rb") as file_model:
+                dictionary = pickle.load(file_model)
+        
         logging.info(f"Training Gensim LDA model ...")
         lda = LdaMulticore(
             corpus=corpus,
