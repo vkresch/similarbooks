@@ -3,7 +3,7 @@ import logging
 import numpy as np
 import datetime
 import pandas as pd
-from gensim.corpora import Dictionary
+from gensim.corpora import Dictionary, MmCorpus
 from gensim.models import LdaMulticore
 from sklearn.feature_extraction.text import CountVectorizer
 from sklearn.feature_extraction import text
@@ -140,6 +140,32 @@ def train_lda(
     return doc_topic_dist
 
 
+# Streamed and memory-efficient tokenization function
+def tokenize_documents(documents):
+    for doc in documents:
+        # Tokenize and yield one document at a time
+        yield simple_preprocess(doc)
+
+
+# Stream documents to create the dictionary and corpus
+def build_dictionary_and_corpus(documents, dictionary_path, corpus_path):
+    # Create a dictionary without loading everything into memory
+    dictionary = Dictionary(tokenize_documents(documents))
+    dictionary.filter_extremes(no_below=2, no_above=0.85)
+
+    # Save the dictionary to disk
+    with open(dictionary_path, "wb") as file_model:
+        pickle.dump(dictionary, file_model, pickle.HIGHEST_PROTOCOL)
+
+    # Memory-efficient corpus generation: stream and save directly to disk
+    def generate_corpus():
+        for doc in tokenize_documents(documents):
+            yield dictionary.doc2bow(doc)
+
+    # Save the corpus using MmCorpus (efficient sparse format on disk)
+    MmCorpus.serialize(corpus_path, generate_corpus())
+
+
 def train_gensim_lda(
     topic_n=100,
     use_cache_lda_summaries_dict=True,
@@ -185,15 +211,15 @@ def train_gensim_lda(
             for item in summaries_dict
         ]
 
-        # Tokenize summaries for Gensim
-        tokenized_summaries = [summary.split() for summary in summaries]
+        # Build dictionary and corpus using memory-efficient method
+        build_dictionary_and_corpus(
+            summaries,
+            PARENT_DIR / Path(f"models/lda_dictionary.pkl"),
+            PARENT_DIR / Path(f"models/lda_corpus.mm"),
+        )
 
-        # Create Gensim Dictionary and Corpus (bag-of-words representation)
-        dictionary = Dictionary(tokenized_summaries)
-        dictionary.filter_extremes(
-            no_below=2, no_above=0.85
-        )  # Apply filtering similar to CountVectorizer's min_df
-        corpus = [dictionary.doc2bow(summary) for summary in tokenized_summaries]
+        # Load the generated corpus for further processing
+        corpus = MmCorpus(PARENT_DIR / Path(f"models/lda_corpus.mm"))
 
         with open(PARENT_DIR / Path(f"models/lda_dictionary.pkl"), "wb") as file_model:
             pickle.dump(dictionary, file_model, pickle.HIGHEST_PROTOCOL)
