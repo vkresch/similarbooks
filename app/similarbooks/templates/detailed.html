@@ -8,12 +8,21 @@
     <div class="book-details">
         <div class="book-cover">
             <img src="{{ image_file }}" alt="Cover for {{ book['node']['title'] }}" onerror="this.src='/static/default-cover.jpg'">
+
+            {% if kindle_link %}
+            <!-- Amazon Affiliate Link Button Directly Under the Cover -->
+            <div class="buy-button">
+                <a href="{{ kindle_link }}" class="btn btn-warning" target="_blank" rel="nofollow noopener">
+                    Kindle on Amazon
+                </a>
+            </div>
+            {% endif %}
             
             {% if amazon_link %}
             <!-- Amazon Affiliate Link Button Directly Under the Cover -->
             <div class="buy-button">
                 <a href="{{ amazon_link }}" class="btn btn-warning" target="_blank" rel="nofollow noopener">
-                    Buy on Amazon.com
+                    Paperback on Amazon
                 </a>
             </div>
             {% endif %}
@@ -85,25 +94,35 @@
         box-shadow: 0px 4px 10px rgba(0, 0, 0, 0.1);
     }
     
-    /* Amazon Button Styling */
+    /* Button Container */
     .buy-button, .gutenberg-button {
         margin-top: 15px;
         display: flex;
         justify-content: center;
+        width: 230px; /* Set consistent width for the buttons */
     }
     .buy-button a, .gutenberg-button a {
-        background-color: #ff9900; /* Amazon Button Color */
-        color: white;
-        padding: 10px 20px;
+        width: 100%; /* Make sure the button takes full width of the container */
+        padding: 10px;
         border-radius: 5px;
         font-weight: bold;
         text-decoration: none;
+        text-align: center;
+    }
+
+    /* Amazon Button Styling */
+    .buy-button a {
+        background-color: #ff9900; /* Amazon Button Color */
+        color: white;
     }
     .buy-button a:hover {
         background-color: #e68a00; /* Amazon Button Hover Color */
     }
+
+    /* Gutenberg Button Styling */
     .gutenberg-button a {
         background-color: #007bff; /* Gutenberg Button Color */
+        color: white;
     }
     .gutenberg-button a:hover {
         background-color: #0056b3; /* Gutenberg Button Hover Color */
@@ -125,6 +144,9 @@
             margin-left: 0; /* Reset margin for mobile */
             margin-top: 20px;
             text-align: left; /* Center-align the text on mobile */
+        }
+        .buy-button, .gutenberg-button {
+            width: 100%; /* Full width on small screens */
         }
     }
 

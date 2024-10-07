@@ -38,11 +38,11 @@ def extract_and_add_params(url):
     if "/gp/product/" in parsed_url.path:
         # Extract the product ID using split and indexing
         product_id = parsed_url.path.split("/gp/product/")[1].split("/")[0]
-        base_url = f"http://{parsed_url.netloc}/gp/product/{product_id}/?ref=nosim&tag=findsimilarbooks-20"
+        base_url = f"http://{parsed_url.netloc}/gp/product/{product_id}/ref=nosim?tag=findsimilarbooks-20"
     elif "/dp/" in parsed_url.path:
         # Extract the product ID using split and indexing
         product_id = parsed_url.path.split("/dp/")[1].split("/")[0]
-        base_url = f"http://{parsed_url.netloc}/dp/{product_id}/?ref=nosim&tag=findsimilarbooks-20"
+        base_url = f"http://{parsed_url.netloc}/dp/{product_id}/ref=nosim?tag=findsimilarbooks-20"
 
     return base_url
 

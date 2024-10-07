@@ -135,11 +135,13 @@ def detailed_book(sha):
         unique_similar_books = extract_distinct_books(
             similar_books, ignore_title=book["node"].get("title")
         )
+        kindle_link = extract_and_add_params(book["node"].get("kindle_link"))
         amazon_link = extract_and_add_params(book["node"].get("amazon_link"))
         return render_template(
             "detailed.html",
             book=book,
             amazon_link=amazon_link,
+            kindle_link=kindle_link,
             similar_books=unique_similar_books,
             description=book.get("node").get("summary"),
             image_file=image_file,
