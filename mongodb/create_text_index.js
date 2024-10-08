@@ -1,1 +1,1 @@
-db.book.createIndex({title: "text"}, {default_language: "none", language_override: "none"})
+db.book.createIndex({title: "text"}, {language_override: "none"})

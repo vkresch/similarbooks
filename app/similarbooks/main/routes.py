@@ -74,7 +74,7 @@ def extract_distinct_books(books, ignore_title=None):
 @main.route("/", methods=["POST", "GET"])
 def index():
     search_form = LandingSearchForm()
-    unique_books = []
+    books = []
     searched = False
     query = request.args.get("query")
     if query:
@@ -87,9 +87,8 @@ def index():
                 "summary_length_gte": MIN_SUMMARY_LENGTH,
             },
         )
-        unique_books = extract_distinct_books(books)
     return render_template(
-        "home.html", searched=searched, books=unique_books, search_form=search_form
+        "home.html", searched=searched, books=books, search_form=search_form
     )
 
 
@@ -105,15 +104,20 @@ def detailed_book(sha):
         som = model_dict["lda_websom"]
         book_id = book["node"]["book_id"]
         image_file = url_for("static", filename=f"covers/{sha}.png")
-        # tasks_vectorized = model_dict["vectorizer"].transform(
-        #     [
-        #         (book["node"].get("title") or "")
-        #         + " "
-        #         + (book["node"].get("summary") or "")
-        #     ]
+        # full_text = (
+        #     (book["node"].get("title") or "")
+        #     + " "
+        #     + (book["node"].get("summary") or "")
         # )
-        # tasks_topic_dist = model_dict["lda"].transform(tasks_vectorized)[0]
-        # active_map = som.get_surface_state(data=np.array([tasks_topic_dist]))
+        # tasks_vectorized = model_dict["dictionary"].doc2bow(full_text.split())
+        # tasks_topic_dist = dict(
+        #     model_dict["lda"].get_document_topics(
+        #         tasks_vectorized, minimum_probability=0
+        #     )
+        # )
+        # active_map = som.get_surface_state(
+        #     data=np.array([list(tasks_topic_dist.values())])
+        # )
         # bmu_nodes = get_top_bmus(som, active_map, top_n=1)
         bmu_nodes = som.labels.get(book_id)
         matched_indices = np.any(
@@ -132,9 +136,6 @@ def detailed_book(sha):
                 "summary_length_gte": MIN_SUMMARY_LENGTH,
             },
         )
-        unique_similar_books = extract_distinct_books(
-            similar_books, ignore_title=book["node"].get("title")
-        )
         kindle_link = extract_and_add_params(book["node"].get("kindle_link"))
         amazon_link = extract_and_add_params(book["node"].get("amazon_link"))
         return render_template(
@@ -142,7 +143,7 @@ def detailed_book(sha):
             book=book,
             amazon_link=amazon_link,
             kindle_link=kindle_link,
-            similar_books=unique_similar_books,
+            similar_books=similar_books,
             description=book.get("node").get("summary"),
             image_file=image_file,
             title=f"{book.get('node').get('title')} by {book.get('node').get('author')}",
