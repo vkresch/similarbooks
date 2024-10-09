@@ -104,17 +104,17 @@ def detailed_book(sha):
         som = model_dict["lda_websom"]
         book_id = book["node"]["book_id"]
         image_file = url_for("static", filename=f"covers/{sha}.png")
-        tasks_vectorized = model_dict["vectorizer"].transform(
-            [
-                (book["node"].get("title") or "")
-                + " "
-                + (book["node"].get("summary") or "")
-            ]
-        )
-        tasks_topic_dist = model_dict["lda"].transform(tasks_vectorized)[0]
-        active_map = som.get_surface_state(data=np.array([tasks_topic_dist]))
-        bmu_nodes = get_top_bmus(som, active_map, top_n=1)
-        # bmu_nodes_lookup = som.labels.get(book_id)
+        # tasks_vectorized = model_dict["vectorizer"].transform(
+        #     [
+        #         (book["node"].get("title") or "")
+        #         + " "
+        #         + (book["node"].get("summary") or "")
+        #     ]
+        # )
+        # tasks_topic_dist = model_dict["lda"].transform(tasks_vectorized)[0]
+        # active_map = som.get_surface_state(data=np.array([tasks_topic_dist]))
+        # bmu_nodes = get_top_bmus(som, active_map, top_n=1)
+        bmu_nodes = som.labels.get(book_id)
         matched_indices = np.any(
             np.all(bmu_nodes == som.bmus[:, None, :], axis=2), axis=1
         )
