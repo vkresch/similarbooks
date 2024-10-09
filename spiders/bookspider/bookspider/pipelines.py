@@ -28,7 +28,7 @@ MONGODB_SETTINGS = {
 PARENT_DIR = Path(__file__).resolve().parent
 
 
-def download_book_cover(spider, sha, url, retries=3, timeout=10):
+def download_book_cover(spider, sha, url, retries=3, timeout=10, max_width=200):
     savedir = PARENT_DIR / Path(f"../../../app/similarbooks/static/covers/{sha}.png")
 
     if os.path.exists(savedir):
@@ -53,8 +53,13 @@ def download_book_cover(spider, sha, url, retries=3, timeout=10):
                     img = img.convert("RGB")
                     spider.logger.info(f"Image {sha} converted from CMYK to RGB.")
 
+                # Resize the image to a maximum width of 200px while maintaining aspect ratio
+                width_percent = max_width / float(img.size[0])
+                new_height = int((float(img.size[1]) * float(width_percent)))
+                img = img.resize((max_width, new_height), Image.LANCZOS)
+
                 # Save the image locally
-                img.save(savedir)
+                img.save(savedir, optimize=True, quality=85)
                 spider.logger.info(f"Image {sha} downloaded and saved successfully!")
                 time.sleep(1)
                 return True  # Download succeeded, exit the loop
