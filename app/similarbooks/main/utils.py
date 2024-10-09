@@ -107,7 +107,6 @@ def get_data(
     filter_string,
 ):
     CACHE_TIMEOUT = 15 * 60  # 15min
-    hashed_query_string = hashlib.sha1(filter_string.encode("utf-8")).hexdigest()
     t1_start = perf_counter()
 
     query = query_string.format(

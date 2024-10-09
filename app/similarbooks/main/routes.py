@@ -131,6 +131,9 @@ def detailed_book(sha):
                 "summary_length_gte": MIN_SUMMARY_LENGTH,
             },
         )
+        unique_similar_books = extract_distinct_books(
+            similar_books, ignore_title=book["node"].get("title")
+        )
         kindle_link = extract_and_add_params(book["node"].get("kindle_link"))
         amazon_link = extract_and_add_params(book["node"].get("amazon_link"))
         return render_template(
@@ -138,7 +141,7 @@ def detailed_book(sha):
             book=book,
             amazon_link=amazon_link,
             kindle_link=kindle_link,
-            similar_books=similar_books,
+            similar_books=unique_similar_books,
             description=book.get("node").get("summary"),
             image_file=image_file,
             title=f"{book.get('node').get('title')} by {book.get('node').get('author')}",

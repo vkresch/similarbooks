@@ -57,6 +57,11 @@ class BookFilter(graphene.InputObjectType):
     sha = graphene.String(
         name="sha",
     )
+    sha__in = graphene.List(
+        graphene.String,
+        name="sha_in",
+        description="Book has to have ONE of the provided sha",
+    )
     language = graphene.String(
         name="language",
     )

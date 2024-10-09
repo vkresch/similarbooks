@@ -48,9 +48,9 @@ def train_lda(
             summaries_dict = pickle.load(file_model)
     else:
         logging.info(f"Querying new summaries dict ...")
-        documents = load_documents_graphql(PARENT_DIR / "data")
+        # documents = load_documents_graphql(PARENT_DIR / "data")
         summaries_dict = query_training_data(limited=False)
-        summaries_dict.extend(documents)
+        # summaries_dict.extend(documents)
 
         with open(
             PARENT_DIR / Path(f"models/lda_summaries_dict.pkl"), "wb"
@@ -97,8 +97,7 @@ def train_lda(
         lda = LatentDirichletAllocation(
             n_components=topic_n,
             random_state=42,
-            learning_method="online",
-            n_jobs=-1,
+            n_jobs=os.cpu_count(),
             verbose=1,
         )
         lda.fit(dtm)
@@ -116,7 +115,7 @@ def train_lda(
         logging.info(f"Generating doc_topic_dist ...")
         doc_topic_dist = pd.DataFrame(
             lda.transform(dtm),
-            index=[item.get("node").get("book_id") for item in summaries_dict],
+            index=[item.get("node").get("sha") for item in summaries_dict],
         )
         with open(PARENT_DIR / Path(f"models/doc_topic_dist.pkl"), "wb") as file_model:
             pickle.dump(doc_topic_dist, file_model, pickle.HIGHEST_PROTOCOL)
@@ -159,9 +158,9 @@ def train_gensim_lda(
             summaries_dict = pickle.load(file_model)
     else:
         logging.info(f"Querying new summaries dict ...")
-        documents = load_documents_graphql(PARENT_DIR / "data")
+        # documents = load_documents_graphql(PARENT_DIR / "data")
         summaries_dict = query_training_data(limited=False)
-        summaries_dict.extend(documents)
+        # summaries_dict.extend(documents)
 
         with open(
             PARENT_DIR / Path(f"models/lda_summaries_dict.pkl"), "wb"
@@ -242,9 +241,7 @@ def train_gensim_lda(
         )  # Ensure NaNs are replaced with zeros
 
         # Set the index to book_id
-        doc_topic_dist.index = [
-            item.get("node").get("book_id") for item in summaries_dict
-        ]
+        doc_topic_dist.index = [item.get("node").get("sha") for item in summaries_dict]
 
         with open(
             PARENT_DIR / Path(f"models/doc_topic_dist_gensim.pkl"), "wb"

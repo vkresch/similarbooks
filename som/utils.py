@@ -317,7 +317,7 @@ TRAIN_SOM_QUERY = """
   all_books (filters: {0}, per_page: {1}) {{
     edges {{
       node {{
-        book_id,
+        sha,
         title,
         summary,
       }}
@@ -330,7 +330,7 @@ UNLIMITED_TRAIN_SOM_QUERY = """
   all_books (filters: {0}) {{
     edges {{
       node {{
-        book_id,
+        sha,
         title,
         summary,
       }}
