@@ -19,19 +19,6 @@ logging.basicConfig(
     datefmt="%Y-%m-%d %H:%M:%S",
 )
 
-ATTRIBUTE_QUERY = """
-{{
-  all_books (page: {0} , per_page: 1000, filters: {1}) {{
-    edges {{
-      node {{
-        sha,
-        title,
-        summary,
-      }}
-    }}
-  }}
-}}""".strip()
-
 # Connect to the MongoDB server
 CLIENT = pymongo.MongoClient(Config.MONGODB_SETTINGS["host"])
 
@@ -42,26 +29,7 @@ LDA_WEBSOM_COLLECTION = DB["lda_websom"]
 BOOK_COLLECTION = DB["book"]
 
 
-def update_model(book):
-    data = book["node"]
-    sha = data["sha"]
-
-    som = model_dict["lda_websom"]
-    bmu_node = som.labels.get(sha)
-
-    if bmu_node is None:
-        return sha
-
-    bmu_update = {
-        "bmu_col": int(bmu_node[0]),
-        "bmu_row": int(bmu_node[1]),
-    }
-
-    matched_documents = LDA_WEBSOM_COLLECTION.find(bmu_update)
-    matched_list = []
-    for doc in matched_documents:
-        matched_list.extend(doc["matched_list"])
-
+def update_model(sha, bmu_update):
     # Update the document
     try:
         BOOK_COLLECTION.update_one({"sha": sha}, {"$set": bmu_update})
@@ -74,22 +42,17 @@ def update_model(book):
 
 
 def main():
-    for page in range(1, 2000):
-        logging.info("Getting data ...")
-        query_string = "{language: 'English', summary_length_gte: 400, bmu_col_exists: false, bmu_row_exists: false}"
-        query = ATTRIBUTE_QUERY.format(
-            page,
-            query_string,
-        ).replace("'", '"')
-        logging.info(f"Query:\n{query}")
-        response = requests.post(
-            url=GRAPHQL_ENDPOINT,
-            json={"query": query},
-        ).json()
-        books = response["data"]["all_books"]["edges"]
-        logging.info(f"Got data with length {len(books)}")
-        for book in books:
-            sha = update_model(book)
+
+    for row in range(model_dict["lda_websom"].codebook.shape[0]):
+        for col in range(model_dict["lda_websom"].codebook.shape[1]):
+            bmu = {
+                "bmu_col": col,
+                "bmu_row": row,
+            }
+            matched_documents = LDA_WEBSOM_COLLECTION.find(bmu)
+            for document in matched_documents:
+                for sha in document.get("matched_list"):
+                    update_model(sha, bmu)
 
 
 if __name__ == "__main__":
