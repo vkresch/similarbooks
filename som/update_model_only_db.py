@@ -21,7 +21,7 @@ logging.basicConfig(
 
 ATTRIBUTE_QUERY = """
 {{
-  all_books (filters: {0}) {{
+  all_books (page: {0} , per_page: 1000, filters: {1}) {{
     edges {{
       node {{
         sha,
@@ -74,10 +74,11 @@ def update_model(book):
 
 
 def main():
-    while True:
+    for page in range(1, 2000):
         logging.info("Getting data ...")
         query_string = "{language: 'English', summary_length_gte: 400, bmu_col_exists: false, bmu_row_exists: false}"
         query = ATTRIBUTE_QUERY.format(
+            page,
             query_string,
         ).replace("'", '"')
         logging.info(f"Query:\n{query}")
