@@ -55,7 +55,7 @@ def update_model(book):
         )
         tasks_topic_dist = model_dict["lda"].transform(tasks_vectorized)[0]
         active_map = som.get_surface_state(data=np.array([tasks_topic_dist]))
-        bmu_node = get_top_bmus(som, active_map, top_n=1)
+        bmu_node = get_top_bmus(som, active_map, top_n=1)[0]
 
     bmu_update = {
         "bmu_col": int(bmu_node[0]),
