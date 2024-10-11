@@ -57,10 +57,13 @@ def extract_and_add_params(url):
 
 
 def get_similar_books(bmu_nodes, sha):
+    matched_list = []
+    if bmu_nodes is None:
+        return matched_list
+
     matched_documents = COLLECTION.find(
         {"bmu_col": int(bmu_nodes[0]), "bmu_row": int(bmu_nodes[1])}
     )
-    matched_list = []
     for doc in matched_documents:
         matched_list.extend(doc["matched_list"])
 
