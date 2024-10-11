@@ -98,11 +98,12 @@ def download_book_cover(spider, sha, url, retries=3, timeout=10, max_width=200):
 
 
 def add_book_bmu(spider, item):
-    text = (item.get("title") or "") + " " + (item.get("summary") or "")
     sha = item["sha"]
-    if len(text) < MIN_SUMMARY_LENGTH:
+    if len((item.get("summary") or "")) < MIN_SUMMARY_LENGTH:
         return item
-    tasks_vectorized = model_dict["vectorizer"].transform([text])
+    tasks_vectorized = model_dict["vectorizer"].transform(
+        [(item.get("title") or "") + " " + (item.get("summary") or "")]
+    )
     tasks_topic_dist = model_dict["lda"].transform(tasks_vectorized)[0]
     active_map = model_dict.get("lda_websom").get_surface_state(
         data=np.array([tasks_topic_dist])
