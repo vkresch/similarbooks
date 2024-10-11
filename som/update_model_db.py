@@ -6,6 +6,7 @@ import tqdm
 import requests
 import datetime
 from utils import model_dict
+import numpy as np
 from app.similarbooks.config import Config
 from app.similarbooks.main.constants import (
     GRAPHQL_ENDPOINT,
@@ -97,10 +98,8 @@ def main():
         ).json()
         books = response["data"]["all_books"]["edges"]
         logging.info(f"Got data with length {len(books)}")
-        pbooks = tqdm.tqdm(books)
-        for book in pbooks:
+        for book in books:
             sha = update_model(book)
-            pbooks.set_description(f"sha {sha}")
 
 
 if __name__ == "__main__":
