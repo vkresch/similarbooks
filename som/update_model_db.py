@@ -101,7 +101,6 @@ def main():
         for book in pbooks:
             sha = update_model(book)
             pbooks.set_description(f"sha {sha}")
-        time.sleep(1)
 
 
 if __name__ == "__main__":
