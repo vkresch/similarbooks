@@ -377,10 +377,10 @@ DEBUG_SOM_QUERY = """
 }}""".strip()
 
 
-def query_debug_display(book_ids):
+def query_debug_display(sha_list):
     logging.info("Getting data ...")
     query = DEBUG_SOM_QUERY.format(
-        "{{book_id_in: {0}, summary_exists: true}}".format(json.dumps(book_ids))
+        "{{sha_in: {0}, summary_exists: true}}".format(json.dumps(sha_list))
     )
     logging.info(f"Query: {query}")
     response = requests.post(

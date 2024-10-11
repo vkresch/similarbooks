@@ -120,19 +120,9 @@ def convert_filters(filters):
             mongo_filters[f"{field}"] = {"$exists": value}
         elif key.endswith("__contains"):
             field = key[:-10]
-            mongo_filters["$and"] = [
-                {
-                    "$text": {
-                        "$search": '"' + value + '"',
-                    },
-                },
-                {
-                    f"{field}": {
-                        "$regex": value,
-                        "$options": "i",
-                    },
-                },
-            ]
+            mongo_filters["$text"] = {
+                "$search": '"' + value + '"',
+            }
         elif key.endswith("__ne"):
             field = key[:-4]
             mongo_filters[f"{field}"] = {"$ne": value}

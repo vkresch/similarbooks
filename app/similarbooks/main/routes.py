@@ -82,9 +82,9 @@ def index():
         books = query_data(
             BOOK_QUERY,
             {
-                "title_contains": query,
                 "language": "English",
                 "summary_length_gte": MIN_SUMMARY_LENGTH,
+                "title_contains": query,
             },
         )
     return render_template(
@@ -102,7 +102,6 @@ def detailed_book(sha):
     if len(book) > 0:
         book = book[0]  # Unlist the book
         som = model_dict["lda_websom"]
-        book_id = book["node"]["book_id"]
         image_file = url_for("static", filename=f"covers/{sha}.png")
         # tasks_vectorized = model_dict["vectorizer"].transform(
         #     [
@@ -114,7 +113,7 @@ def detailed_book(sha):
         # tasks_topic_dist = model_dict["lda"].transform(tasks_vectorized)[0]
         # active_map = som.get_surface_state(data=np.array([tasks_topic_dist]))
         # bmu_nodes = get_top_bmus(som, active_map, top_n=1)
-        bmu_nodes = som.labels.get(book_id)
+        bmu_nodes = som.labels.get(sha)
         matched_indices = np.any(
             np.all(bmu_nodes == som.bmus[:, None, :], axis=2), axis=1
         )
@@ -122,11 +121,11 @@ def detailed_book(sha):
         # matched_list = get_similar_books_lda(
         #     book["node"].get("title") + " " + book["node"].get("summary")
         # )
-        prefix_matched_list = [match for match in matched_list if match != book_id]
+        prefix_matched_list = [match for match in matched_list if match != sha]
         similar_books = query_data(
             BOOK_QUERY,
             {
-                "book_id_in": prefix_matched_list,
+                "sha_in": prefix_matched_list,
                 "language": "English",
                 "summary_length_gte": MIN_SUMMARY_LENGTH,
             },

@@ -20,7 +20,7 @@ IGNORE_FIELDS_FOR_FILTER = [
 
 BOOK_QUERY = """
 {{
-  all_books (page: 1, per_page: 100, order_by: "-ratings_count",  filters: {0} ) {{
+  all_books (page: 1, per_page: 20, order_by: "-ratings_count",  filters: {0} ) {{
     edges {{
       node {{
         sha,
@@ -37,7 +37,6 @@ DETAILED_BOOK_QUERY = """
   all_books (filters: {0} ) {{
     edges {{
       node {{
-        book_id,
         sha,
         spider,
         summary,
