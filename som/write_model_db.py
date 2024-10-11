@@ -8,7 +8,6 @@ import requests
 import datetime
 from utils import model_dict
 from app.similarbooks.config import Config
-from bookspider.models import Book
 from app.similarbooks.main.constants import (
     GRAPHQL_ENDPOINT,
 )
