@@ -26,7 +26,11 @@ from similarbooks.main.constants import (
     MIN_SUMMARY_LENGTH,
 )
 from similarbooks.config import Config
-from similarbooks.main.utils import query_data, extract_and_add_params
+from similarbooks.main.utils import (
+    query_data,
+    extract_and_add_params,
+    get_similar_books,
+)
 from som.utils import model_dict, get_similar_books_lda, get_top_bmus
 
 VERSION = f"v{Config.VERSION_MAJOR}.{Config.VERSION_MINOR}.{Config.VERSION_PATCH}"
@@ -103,29 +107,13 @@ def detailed_book(sha):
         book = book[0]  # Unlist the book
         som = model_dict["lda_websom"]
         image_file = url_for("static", filename=f"covers/{sha}.png")
-        # tasks_vectorized = model_dict["vectorizer"].transform(
-        #     [
-        #         (book["node"].get("title") or "")
-        #         + " "
-        #         + (book["node"].get("summary") or "")
-        #     ]
-        # )
-        # tasks_topic_dist = model_dict["lda"].transform(tasks_vectorized)[0]
-        # active_map = som.get_surface_state(data=np.array([tasks_topic_dist]))
-        # bmu_nodes = get_top_bmus(som, active_map, top_n=1)
-        bmu_nodes = som.labels.get(sha)
-        matched_indices = np.any(
-            np.all(bmu_nodes == som.bmus[:, None, :], axis=2), axis=1
+        matched_list = get_similar_books(
+            [book["node"].get("bmu_col"), book["node"].get("bmu_row")], sha
         )
-        matched_list = list(pd.Series(som.labels.keys())[matched_indices])
-        # matched_list = get_similar_books_lda(
-        #     book["node"].get("title") + " " + book["node"].get("summary")
-        # )
-        prefix_matched_list = [match for match in matched_list if match != sha]
         similar_books = query_data(
             BOOK_QUERY,
             {
-                "sha_in": prefix_matched_list,
+                "sha_in": matched_list,
                 "language": "English",
                 "summary_length_gte": MIN_SUMMARY_LENGTH,
             },

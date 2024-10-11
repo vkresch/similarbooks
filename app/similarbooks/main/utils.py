@@ -11,6 +11,7 @@ from urllib.parse import parse_qs
 import pandas as pd
 import logging
 import hashlib
+import pymongo
 from app.similarbooks.config import Config
 from app.similarbooks.main.common import cache
 from app.similarbooks.main.constants import (
@@ -23,6 +24,14 @@ average_name_dict = {
 }
 
 TRACKING_ID = "findsimilarbooks-20"
+
+# Connect to the MongoDB server
+CLIENT = pymongo.MongoClient(Config.MONGODB_SETTINGS["host"])
+
+# Get the appartment database and the appartment COLLECTION
+DB = CLIENT["similarbooks"]
+
+COLLECTION = DB["lda_websom"]
 
 
 def extract_and_add_params(url):
@@ -45,6 +54,19 @@ def extract_and_add_params(url):
         base_url = f"http://{parsed_url.netloc}/dp/{product_id}/ref=nosim?tag=findsimilarbooks-20"
 
     return base_url
+
+
+def get_similar_books(bmu_nodes, sha):
+    matched_documents = COLLECTION.find(
+        {"bmu_col": int(bmu_nodes[0]), "bmu_row": int(bmu_nodes[1])}
+    )
+    matched_list = []
+    for doc in matched_documents:
+        matched_list.extend(doc["matched_list"])
+
+    if sha in matched_list:
+        matched_list.remove(sha)
+    return matched_list
 
 
 def get_action(path):

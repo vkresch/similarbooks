@@ -68,6 +68,18 @@ class BookFilter(graphene.InputObjectType):
     spider = graphene.String(
         name="spider",
     )
+    bmu_col = graphene.Int(
+        name="bmu_col",
+    )
+    bmu_col__exists = graphene.Boolean(
+        name="bmu_col_exists",
+    )
+    bmu_row = graphene.Int(
+        name="bmu_row",
+    )
+    bmu_row__exists = graphene.Boolean(
+        name="bmu_row_exists",
+    )
 
 
 def convert_filters(filters):

@@ -39,8 +39,8 @@ def load_file(path):
 model_dict = {
     "lda_websom": load_file(f"som/models/lda_websom.pkl"),
     # "doc_topic_dist": load_file(f"som/models/doc_topic_dist.pkl"),
-    # "vectorizer": load_file(f"som/models/lda_vectorizer.pkl"),
-    # "lda": load_file(f"som/models/lda.pkl"),
+    "vectorizer": load_file(f"som/models/lda_vectorizer.pkl"),
+    "lda": load_file(f"som/models/lda.pkl"),
 }
 
 

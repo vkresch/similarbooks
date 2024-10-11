@@ -43,6 +43,8 @@ DETAILED_BOOK_QUERY = """
         title,
         author,
         url,
+        bmu_col,
+        bmu_row,
         amazon_link,
         kindle_link,
       }}
