@@ -58,7 +58,7 @@ def extract_and_add_params(url):
 
 def get_similar_books(bmu_nodes, sha):
     matched_list = []
-    if bmu_nodes is None:
+    if bmu_nodes is None or bmu_nodes[0] is None:
         return matched_list
 
     matched_documents = COLLECTION.find(
