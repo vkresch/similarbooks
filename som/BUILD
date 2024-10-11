@@ -172,3 +172,19 @@ py_binary(
         "//app/similarbooks:similarbooks_config",
     ],
 )
+
+py_binary(
+    name = "update_model_only_db",
+    main = "update_model_only_db.py",
+    srcs = ["update_model_only_db.py"],
+    deps = [
+        requirement("somoclu"),
+        requirement("pymongo"),
+        requirement("numpy"),
+        requirement("tqdm"),
+        requirement("pandas"),
+        ":utils",
+        "//app/similarbooks/main:constants",
+        "//app/similarbooks:similarbooks_config",
+    ],
+)
