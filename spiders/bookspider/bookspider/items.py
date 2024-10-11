@@ -62,3 +62,7 @@ class BookItem(Item):
     spider = Field()
     server = Field()
     date = Field()
+
+    # Model specific fields
+    bmu_col = Field()
+    bmu_row = Field()

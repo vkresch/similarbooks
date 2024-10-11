@@ -140,3 +140,35 @@ py_binary(
         ":utils",
     ],
 )
+
+py_binary(
+    name = "write_model_db",
+    main = "write_model_db.py",
+    srcs = ["write_model_db.py"],
+    deps = [
+        requirement("somoclu"),
+        requirement("pymongo"),
+        requirement("numpy"),
+        requirement("tqdm"),
+        requirement("pandas"),
+        ":utils",
+        "//app/similarbooks/main:constants",
+        "//app/similarbooks:similarbooks_config",
+    ],
+)
+
+py_binary(
+    name = "update_model_db",
+    main = "update_model_db.py",
+    srcs = ["update_model_db.py"],
+    deps = [
+        requirement("somoclu"),
+        requirement("pymongo"),
+        requirement("numpy"),
+        requirement("tqdm"),
+        requirement("pandas"),
+        ":utils",
+        "//app/similarbooks/main:constants",
+        "//app/similarbooks:similarbooks_config",
+    ],
+)

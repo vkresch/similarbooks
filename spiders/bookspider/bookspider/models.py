@@ -64,3 +64,7 @@ class Book(Document):
     spider = StringField()
     server = StringField()
     date = DateTimeField(required=True)
+
+    # Model specific fields
+    bmu_col = IntField()
+    bmu_row = IntField()
