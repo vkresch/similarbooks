@@ -1,4 +1,5 @@
 import mongoengine as me
+from mongoengine import Q
 import argparse
 import logging
 import time
@@ -38,7 +39,7 @@ ATTRIBUTE_QUERY = """
 me.connect(db="similarbooks", host=Config.MONGODB_SETTINGS["host"])
 
 # Max number of workers (adjust based on system capacity)
-MAX_WORKERS = 8
+MAX_WORKERS = 4
 
 
 def fetch_and_process_book(book):
