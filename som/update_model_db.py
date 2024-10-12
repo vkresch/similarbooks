@@ -39,7 +39,7 @@ ATTRIBUTE_QUERY = """
 me.connect(db="similarbooks", host=Config.MONGODB_SETTINGS["host"])
 
 # Max number of workers (adjust based on system capacity)
-MAX_WORKERS = 4
+MAX_WORKERS = 5
 
 
 def fetch_and_process_book(book):

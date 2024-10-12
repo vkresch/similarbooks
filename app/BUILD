@@ -18,14 +18,9 @@ py_library(
 py_library(
     name="similarbooks_library",
     deps = [
-        requirement("plotly"),
-        requirement("pandas"),
-        requirement("somoclu"),
-        requirement("numpy"),
         "//app/similarbooks:similarbooks_lib",
         ":flask_library",
         "//spiders/bookspider:schemas",
-        "//som:utils",
     ],
 )
 

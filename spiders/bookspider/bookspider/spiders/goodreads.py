@@ -11,7 +11,6 @@ from itemloaders.processors import MapCompose, TakeFirst, Join
 
 from w3lib.html import replace_escape_chars
 from pymongo import MongoClient
-import numpy as np
 import re
 import datetime
 from dateutil import parser

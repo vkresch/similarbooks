@@ -1,5 +1,3 @@
-import numpy as np
-import pandas as pd
 import datetime
 from app.similarbooks.main.common import cache
 from app.similarbooks.main.utils import get_param
@@ -31,7 +29,6 @@ from similarbooks.main.utils import (
     extract_and_add_params,
     get_similar_books,
 )
-from som.utils import model_dict, get_similar_books_lda, get_top_bmus
 
 VERSION = f"v{Config.VERSION_MAJOR}.{Config.VERSION_MINOR}.{Config.VERSION_PATCH}"
 
@@ -105,7 +102,6 @@ def detailed_book(sha):
     )
     if len(book) > 0:
         book = book[0]  # Unlist the book
-        som = model_dict["lda_websom"]
         image_file = url_for("static", filename=f"covers/{sha}.png")
         matched_list = get_similar_books(
             [book["node"].get("bmu_col"), book["node"].get("bmu_row")], sha

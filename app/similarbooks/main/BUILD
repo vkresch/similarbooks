@@ -11,11 +11,7 @@ py_library(
     deps = [
         requirement("flask"),
         requirement("flask_caching"),
-        requirement("plotly"),
         requirement("requests"),
-        requirement("somoclu"),
-        requirement("pandas"),
-        "//som:utils",
         "//app/similarbooks:similarbooks_config",
         ":constants",
     ],

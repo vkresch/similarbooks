@@ -7,8 +7,6 @@
 # useful for handling different item types with a single interface
 import os
 import sys
-import pymongo
-import numpy as np
 from mongoengine import connect
 import time
 from pathlib import Path
@@ -17,7 +15,6 @@ from PIL import Image
 from io import BytesIO
 from mongoengine.connection import disconnect
 from bookspider.models import Book, Websom
-from som.utils import model_dict, get_top_bmus
 from app.similarbooks.main.constants import (
     MIN_SUMMARY_LENGTH,
 )
@@ -89,32 +86,6 @@ def download_book_cover(spider, sha, url, retries=3, timeout=10, max_width=200):
     return False
 
 
-def add_book_bmu(spider, item):
-    sha = item["sha"]
-    if len((item.get("summary") or "")) < MIN_SUMMARY_LENGTH:
-        return item
-    tasks_vectorized = model_dict["vectorizer"].transform(
-        [(item.get("title") or "") + " " + (item.get("summary") or "")]
-    )
-    tasks_topic_dist = model_dict["lda"].transform(tasks_vectorized)[0]
-    active_map = model_dict.get("lda_websom").get_surface_state(
-        data=np.array([tasks_topic_dist])
-    )
-    bmu_node = get_top_bmus(model_dict.get("lda_websom"), active_map, top_n=1)
-
-    item["bmu_col"] = int(bmu_node[0][0])
-    item["bmu_row"] = int(bmu_node[0][1])
-
-    bmu_update = {"bmu_col": item["bmu_col"], "bmu_row": item["bmu_row"]}
-
-    updated_document = Websom.objects(
-        bmu_col=item["bmu_col"], bmu_row=item["bmu_row"]
-    ).update_one(add_to_set__matched_list=sha)
-    spider.logger.info(f"Appended new book {sha} to bmu node {bmu_update} in websom")
-
-    return item
-
-
 class BookspiderMongoDBPipeline:
     _connection = None  # Global connection
 
@@ -157,7 +128,6 @@ class BookspiderMongoDBPipeline:
                 spider.logger.info(f"Book with id {item['book_id']} overridden!")
                 existing_item.save()
         else:
-            # item = add_book_bmu(spider, item)  # Add only new bmu to new books parsed
             book = Book(**dict(item))
             book.save()
         return item

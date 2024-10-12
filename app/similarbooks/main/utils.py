@@ -8,7 +8,6 @@ import json
 from time import perf_counter
 from urllib.parse import urlparse
 from urllib.parse import parse_qs
-import pandas as pd
 import logging
 import hashlib
 import pymongo

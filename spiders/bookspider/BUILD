@@ -20,7 +20,6 @@ py_binary(
     deps = [
         requirement("scrapy"),
         requirement("tqdm"),
-        "//som:utils",
         "//app/similarbooks/main:constants",
         ":schemas",
     ],
