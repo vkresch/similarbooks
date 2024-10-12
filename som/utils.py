@@ -420,3 +420,33 @@ def get_top_bmus(som, activation_map, top_n):
         activation_map[np.arange(n_samples), bmu_indices] = np.inf
 
     return top_bmus_combined[0]
+
+
+def get_surface_state(data=None):
+    """Return the Euclidean distance between codebook and a list of data arrays,
+    fully vectorized without looping or splitting into parts.
+
+    :param data: A list of 2D numpy arrays, each with the same shape.
+    :type data: list of 2D numpy.array of float32.
+    """
+
+    # Stack data arrays into a single 3D array (num_datasets, num_samples, num_features)
+    data_stack = np.stack(
+        data, axis=0
+    )  # Shape: (num_datasets, num_samples, num_features)
+
+    # Reshape codebook for distance computation (flattened SOM grid)
+    codebookReshaped = model_dict["lda_websom"].codebook.reshape(
+        model_dict["lda_websom"].codebook.shape[0]
+        * model_dict["lda_websom"].codebook.shape[1],
+        model_dict["lda_websom"].codebook.shape[2],
+    )  # Shape: (num_units, num_features)
+
+    # Broadcasting for distance computation
+    # Data stack shape will become (num_datasets, num_samples, 1, num_features)
+    # Codebook reshaped will become (1, 1, num_units, num_features)
+    activation_maps = np.linalg.norm(
+        data_stack[:, np.newaxis, :] - codebookReshaped[np.newaxis, :, :], axis=2
+    )  # Shape: (num_samples, num_units)
+
+    return activation_maps
