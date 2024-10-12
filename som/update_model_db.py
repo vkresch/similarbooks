@@ -7,7 +7,7 @@ import tqdm
 import requests
 import datetime
 from utils import model_dict
-from concurrent.futures import ThreadPoolExecutor
+from concurrent.futures import ProcessPoolExecutor
 import numpy as np
 from app.similarbooks.config import Config
 from app.similarbooks.main.constants import (
@@ -24,7 +24,7 @@ logging.basicConfig(
 
 ATTRIBUTE_QUERY = """
 {{
-  all_books (order_by: "-ratings_count" , filters: {0}) {{
+  all_books (filters: {0}) {{
     edges {{
       node {{
         sha,
@@ -102,11 +102,12 @@ def main():
         books = response["data"]["all_books"]["edges"]
         logging.info(f"Got data with length {len(books)}")
 
-        for book in books:
-            fetch_and_process_book(book)
+        # for book in books:
+        #     fetch_and_process_book(book)
 
-        # with ThreadPoolExecutor(max_workers=MAX_WORKERS) as executor:
-        #     executor.map(fetch_and_process_book, books)
+        # Use ProcessPoolExecutor for CPU-bound tasks
+        with ProcessPoolExecutor(max_workers=MAX_WORKERS) as executor:
+            executor.map(fetch_and_process_book, books)
 
 
 if __name__ == "__main__":

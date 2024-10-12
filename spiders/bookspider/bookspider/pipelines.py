@@ -110,7 +110,9 @@ class BookspiderMongoDBPipeline:
 
     def close_spider(self, spider):
         """Optionally handle clean-up when all spiders are done."""
-        spider.logger.info("Spider finished, MongoDB connection remains open.")
+        self.db.close()
+        disconnect(self.mongo_db)
+        spider.logger.info("Spider finished!")
 
     def process_item(self, item, spider):
         image_url = item.get("image_url")
