@@ -24,7 +24,7 @@ logging.basicConfig(
 
 ATTRIBUTE_QUERY = """
 {{
-  all_books (filters: {0}) {{
+  all_books (order_by: "-ratings_count" , filters: {0}) {{
     edges {{
       node {{
         sha,
@@ -102,8 +102,11 @@ def main():
         books = response["data"]["all_books"]["edges"]
         logging.info(f"Got data with length {len(books)}")
 
-        with ThreadPoolExecutor(max_workers=MAX_WORKERS) as executor:
-            executor.map(fetch_and_process_book, books)
+        for book in books:
+            fetch_and_process_book(book)
+
+        # with ThreadPoolExecutor(max_workers=MAX_WORKERS) as executor:
+        #     executor.map(fetch_and_process_book, books)
 
 
 if __name__ == "__main__":
