@@ -1,4 +1,4 @@
-import pymongo
+import mongoengine as me
 import argparse
 import logging
 import time
@@ -6,12 +6,14 @@ import tqdm
 import requests
 import datetime
 from utils import model_dict
+from concurrent.futures import ThreadPoolExecutor
 import numpy as np
 from app.similarbooks.config import Config
 from app.similarbooks.main.constants import (
     GRAPHQL_ENDPOINT,
 )
 from som.utils import get_top_bmus
+from spiders.bookspider.bookspider.models import Book, Websom
 
 logging.basicConfig(
     format="%(asctime)s %(levelname)-8s %(message)s",
@@ -32,14 +34,19 @@ ATTRIBUTE_QUERY = """
   }}
 }}""".strip()
 
-# Connect to the MongoDB server
-CLIENT = pymongo.MongoClient(Config.MONGODB_SETTINGS["host"])
+# Connect to MongoDB using mongoengine
+me.connect(db="similarbooks", host=Config.MONGODB_SETTINGS["host"])
 
-# Get the appartment database and the appartment collection
-DB = CLIENT["similarbooks"]
+# Max number of workers (adjust based on system capacity)
+MAX_WORKERS = 8
 
-LDA_WEBSOM_COLLECTION = DB["lda_websom"]
-BOOK_COLLECTION = DB["book"]
+
+def fetch_and_process_book(book):
+    try:
+        sha = update_model(book)
+        logging.info(f"Processed book with SHA: {sha}")
+    except Exception as e:
+        logging.error(f"Error processing book: {e}")
 
 
 def update_model(book):
@@ -62,21 +69,16 @@ def update_model(book):
         "bmu_row": int(bmu_node[1]),
     }
 
-    matched_documents = LDA_WEBSOM_COLLECTION.find(bmu_update)
-    matched_list = []
-    for doc in matched_documents:
-        matched_list.extend(doc["matched_list"])
-
     # Update the document
     try:
-        BOOK_COLLECTION.update_one({"sha": sha}, {"$set": bmu_update})
-        logging.info(f"Update book {sha} with {bmu_update}")
-        if sha not in matched_list:
-            matched_list.append(sha)
-            LDA_WEBSOM_COLLECTION.update_one(
-                bmu_update, {"$set": {"matched_list": matched_list}}
-            )
-            logging.info(f"Appended new book {sha} to bmu node {bmu_update} in websom")
+        Book.objects(sha=sha).update_one(
+            set__bmu_col=bmu_update["bmu_col"],
+            set__bmu_row=bmu_update["bmu_row"],
+        )
+        Websom.objects(**bmu_update).update_one(
+            add_to_set__matched_list=sha  # Add to list without duplication
+        )
+        logging.info(f"Updated new book {sha} to bmu node {bmu_update} in websom")
     except Exception as e:
         logging.error(e)
         return "xxxxx"
@@ -98,8 +100,9 @@ def main():
         ).json()
         books = response["data"]["all_books"]["edges"]
         logging.info(f"Got data with length {len(books)}")
-        for book in books:
-            sha = update_model(book)
+
+        with ThreadPoolExecutor(max_workers=MAX_WORKERS) as executor:
+            executor.map(fetch_and_process_book, books)
 
 
 if __name__ == "__main__":

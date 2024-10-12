@@ -16,7 +16,7 @@ import requests
 from PIL import Image
 from io import BytesIO
 from mongoengine.connection import disconnect
-from bookspider.models import Book
+from bookspider.models import Book, Websom
 from som.utils import model_dict, get_top_bmus
 from app.similarbooks.main.constants import (
     MIN_SUMMARY_LENGTH,
@@ -32,14 +32,6 @@ MONGODB_SETTINGS = {
 }
 
 PARENT_DIR = Path(__file__).resolve().parent
-
-# Connect to the MongoDB server
-CLIENT = pymongo.MongoClient(MONGODB_SETTINGS["host"])
-
-# Get the appartment database and the appartment collection
-DB = CLIENT["similarbooks"]
-
-LDA_WEBSOM_COLLECTION = DB["lda_websom"]
 
 
 def download_book_cover(spider, sha, url, retries=3, timeout=10, max_width=200):
@@ -115,20 +107,17 @@ def add_book_bmu(spider, item):
 
     bmu_update = {"bmu_col": item["bmu_col"], "bmu_row": item["bmu_row"]}
 
-    matched_documents = LDA_WEBSOM_COLLECTION.find(bmu_update)
-    matched_list = [sha]
-    for doc in matched_documents:
-        matched_list.extend(doc["matched_list"])
-
-    LDA_WEBSOM_COLLECTION.update_one(
-        bmu_update, {"$set": {"matched_list": matched_list}}
-    )
+    updated_document = Websom.objects(
+        bmu_col=item["bmu_col"], bmu_row=item["bmu_row"]
+    ).update_one(add_to_set__matched_list=sha)
     spider.logger.info(f"Appended new book {sha} to bmu node {bmu_update} in websom")
 
     return item
 
 
 class BookspiderMongoDBPipeline:
+    _connection = None  # Global connection
+
     def __init__(self, mongo_db):
         self.mongo_db = mongo_db
 
@@ -136,12 +125,21 @@ class BookspiderMongoDBPipeline:
     def from_crawler(cls, crawler):
         return cls(mongo_db=crawler.settings.get("MONGO_DB", "items"))
 
+    @staticmethod
+    def get_connection(mongo_settings):
+        """Initialize MongoDB connection if not already connected."""
+        if not BookspiderMongoDBPipeline._connection:
+            BookspiderMongoDBPipeline._connection = connect(**mongo_settings)
+        return BookspiderMongoDBPipeline._connection
+
     def open_spider(self, spider):
-        self.db = connect(**MONGODB_SETTINGS)
+        """Ensure global connection is open when the spider starts."""
+        self.db = self.get_connection(MONGODB_SETTINGS)
+        spider.logger.info(f"Connected to MongoDB: {self.mongo_db}")
 
     def close_spider(self, spider):
-        self.db.close()
-        disconnect(self.mongo_db)
+        """Optionally handle clean-up when all spiders are done."""
+        spider.logger.info("Spider finished, MongoDB connection remains open.")
 
     def process_item(self, item, spider):
         image_url = item.get("image_url")

@@ -68,3 +68,21 @@ class Book(Document):
     # Model specific fields
     bmu_col = IntField()
     bmu_row = IntField()
+
+
+class Websom(Document):
+
+    # Model specific fields
+    bmu_col = IntField(required=True)
+    bmu_row = IntField(required=True)
+    matched_list = ListField()
+
+    meta = {
+        "collection": "lda_websom",
+        "indexes": [
+            {
+                "fields": ["bmu_col", "bmu_row"],
+                "unique": True,  # Ensure that the combination of bmu_col and bmu_row is unique
+            }
+        ],
+    }

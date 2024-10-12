@@ -170,6 +170,7 @@ py_binary(
         ":utils",
         "//app/similarbooks/main:constants",
         "//app/similarbooks:similarbooks_config",
+        "//spiders/bookspider:schemas",
     ],
 )
 
