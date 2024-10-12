@@ -9,7 +9,6 @@ from bookspider.settings import (
     USER_AGENT,
     ROBOTSTXT_OBEY,
     CONCURRENT_REQUESTS,
-    AUTOTHROTTLE_ENABLED,
     DOWNLOAD_DELAY,
     ITEM_PIPELINES,
     MONGODB_DB,
@@ -65,7 +64,6 @@ if __name__ == "__main__":
             "DOWNLOADER_MIDDLEWARES": DOWNLOADER_MIDDLEWARES,
             "SCRAPEOPS_API_KEY": os.environ["SCRAPEOPS_API_KEY"],
             "CONCURRENT_REQUESTS": CONCURRENT_REQUESTS,
-            "AUTOTHROTTLE_ENABLED": AUTOTHROTTLE_ENABLED,
             # "EXTENSIONS": EXTENSIONS,
         }
     )

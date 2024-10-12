@@ -157,7 +157,7 @@ class BookspiderMongoDBPipeline:
                 spider.logger.info(f"Book with id {item['book_id']} overridden!")
                 existing_item.save()
         else:
-            item = add_book_bmu(spider, item)  # Add only new bmu to new books parsed
+            # item = add_book_bmu(spider, item)  # Add only new bmu to new books parsed
             book = Book(**dict(item))
             book.save()
         return item

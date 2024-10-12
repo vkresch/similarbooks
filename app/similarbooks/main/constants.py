@@ -1,6 +1,6 @@
 # Constants
 DEBUG = False
-QUERY_LIMIT = 20 if not DEBUG else 10_000_000
+QUERY_LIMIT = 50 if not DEBUG else 10_000_000
 
 # NOTE: The endpoint and cookie session needs to be adjusted on the server
 GRAPHQL_ENDPOINT = "http://127.0.0.1:8000/graphql"
@@ -20,7 +20,7 @@ IGNORE_FIELDS_FOR_FILTER = [
 
 BOOK_QUERY = """
 {{
-  all_books (page: 1, per_page: 20, order_by: "-ratings_count",  filters: {0} ) {{
+  all_books (page: 1, per_page: 50, order_by: "-ratings_count",  filters: {0} ) {{
     edges {{
       node {{
         sha,
