@@ -7,7 +7,7 @@ import tqdm
 import requests
 import datetime
 from utils import model_dict
-from concurrent.futures import ProcessPoolExecutor
+from concurrent.futures import ThreadPoolExecutor
 import numpy as np
 from app.similarbooks.config import Config
 from app.similarbooks.main.constants import (
@@ -105,8 +105,7 @@ def main():
         # for book in books:
         #     fetch_and_process_book(book)
 
-        # Use ProcessPoolExecutor for CPU-bound tasks
-        with ProcessPoolExecutor(max_workers=MAX_WORKERS) as executor:
+        with ThreadPoolExecutor(max_workers=MAX_WORKERS) as executor:
             executor.map(fetch_and_process_book, books)
 
 
