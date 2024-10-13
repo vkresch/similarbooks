@@ -220,7 +220,7 @@ def common_resolver(**kwargs):
 
     pipeline.extend(
         [
-            {"$skip": offset},  # Pagination: skip first `offset` documents
+            # {"$skip": offset},  # Pagination: skip first `offset` documents
             {"$limit": per_page},  # Limit the number of documents returned
             {"$project": {"_id": 0}},  # Don't return the `_id` field
         ]

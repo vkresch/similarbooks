@@ -83,8 +83,6 @@ def index():
         books = query_data(
             BOOK_QUERY,
             {
-                "language": "English",
-                "summary_length_gte": MIN_SUMMARY_LENGTH,
                 "title_contains": query,
             },
         )
@@ -110,8 +108,6 @@ def detailed_book(sha):
             BOOK_QUERY,
             {
                 "sha_in": matched_list,
-                "language": "English",
-                "summary_length_gte": MIN_SUMMARY_LENGTH,
             },
         )
         unique_similar_books = extract_distinct_books(
