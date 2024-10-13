@@ -5,7 +5,7 @@ from similarbooks import create_app
 
 def number_of_workers():
     # return (multiprocessing.cpu_count() * 2) + 1
-    return 4
+    return 6
 
 
 class StandaloneApplication(gunicorn.app.base.BaseApplication):
@@ -32,5 +32,6 @@ if __name__ == "__main__":
     options = {
         "bind": "%s:%s" % ("127.0.0.1", "8000"),
         "workers": number_of_workers(),
+        "timeout": 120,
     }
     StandaloneApplication(som_app, options).run()
