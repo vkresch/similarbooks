@@ -178,7 +178,7 @@ def update_filter(filters, kwargs):
 def common_resolver(**kwargs):
     per_page = min(kwargs.get("per_page", QUERY_LIMIT), QUERY_LIMIT)
     offset = (kwargs.get("page", 1) - 1) * per_page
-    order_by = kwargs.get("order_by", "_id")
+    order_by = kwargs.get("order_by", None)
     filters = update_filter(kwargs.get("filters", {}), kwargs)
 
     # Check if the `summary__length_gte` filter is provided
@@ -215,9 +215,11 @@ def common_resolver(**kwargs):
             }
         )
 
+    if order_by is not None:
+        pipeline.extend([{"$sort": get_sort_args(order_by)}])
+
     pipeline.extend(
         [
-            {"$sort": get_sort_args(order_by)},  # Sorting
             {"$skip": offset},  # Pagination: skip first `offset` documents
             {"$limit": per_page},  # Limit the number of documents returned
             {"$project": {"_id": 0}},  # Don't return the `_id` field
