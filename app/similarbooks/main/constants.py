@@ -31,6 +31,19 @@ BOOK_QUERY = """
   }}
 }}""".strip()
 
+RANDOM_BOOK_QUERY = """
+{{
+  random_books (order_by: "-ratings_count") {{
+    edges {{
+      node {{
+        sha,
+        title,
+        author,
+      }}
+    }}
+  }}
+}}""".strip()
+
 DETAILED_BOOK_QUERY = """
 {{
   all_books (filters: {0} ) {{

@@ -32,7 +32,11 @@
 
 {% if books|length > 0 %}
 <div class="results-section">
-    <h4>Search Results (max. 50)</h4>
+    {% if searched %}
+        <h4>Search Results (max. 50)</h4>
+    {% else %}
+        <h4>Random Book Recommendation</h4>
+    {% endif %}
     <ul class="search-results-list">
         {% for book in books %}
             <li class="search-result-item">
@@ -145,9 +149,17 @@
         document.getElementById("loading").style.display = "flex"; // Show loading spinner as a flexbox
     }
 
+    // Hide the spinner when the page is loaded from the cache (e.g., using the browser's back button)
+    window.addEventListener("pageshow", function(event) {
+        if (event.persisted) {
+            // If the page is loaded from the cache, hide the spinner
+            document.getElementById("loading").style.display = "none";
+        }
+    });
+
     // Prevent resubmission of the form if the page is refreshed
-    if ( window.history.replaceState ) {
-        window.history.replaceState( null, null, window.location.href );
+    if (window.history.replaceState) {
+        window.history.replaceState(null, null, window.location.href);
     }
 </script>
 

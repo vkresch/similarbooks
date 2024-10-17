@@ -129,6 +129,7 @@ def get_zipcodes(search):
 def get_data(
     query_string,
     filter_string,
+    resolver_name,
 ):
     CACHE_TIMEOUT = 15 * 60  # 15min
     t1_start = perf_counter()
@@ -151,7 +152,7 @@ def get_data(
         ).json()
         cache.set(hashed_query, response, timeout=CACHE_TIMEOUT)
 
-    books = response["data"]["all_books"]["edges"]
+    books = response["data"][resolver_name]["edges"]
 
     logging.debug(
         f"Queried {len(books)} books in {(perf_counter() - t1_start):.2f} seconds"
@@ -163,6 +164,7 @@ def get_data(
 def query_data(
     query_string,
     filter_dict,
+    resolver_name="all_books",
 ):
     query = []
     for filter_key, filter_value in filter_dict.items():
@@ -182,6 +184,7 @@ def query_data(
     return get_data(
         query_string,
         filter_string,
+        resolver_name,
     )
 
 

@@ -20,6 +20,7 @@ from similarbooks.main.forms import (
 )
 from similarbooks.main.constants import (
     BOOK_QUERY,
+    RANDOM_BOOK_QUERY,
     DETAILED_BOOK_QUERY,
     MIN_SUMMARY_LENGTH,
 )
@@ -86,6 +87,10 @@ def index():
                 "title_contains": query,
             },
         )
+    else:
+        # Random books display
+        books = query_data(RANDOM_BOOK_QUERY, {}, resolver_name="random_books")
+
     return render_template(
         "home.html", searched=searched, books=books, search_form=search_form
     )

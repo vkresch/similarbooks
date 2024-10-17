@@ -234,6 +234,30 @@ def common_resolver(**kwargs):
     )
 
 
+def random_resolver(**kwargs):
+    order_by = kwargs.get("order_by", None)
+
+    pipeline = [
+        {"$sample": {"size": 10}},
+    ]
+
+    if order_by is not None:
+        pipeline.extend([{"$sort": get_sort_args(order_by)}])
+
+    pipeline.extend(
+        [
+            {"$project": {"_id": 0}},  # Don't return the `_id` field
+        ]
+    )
+
+    return list(
+        map(
+            lambda prop: transform(prop, kwargs.get("document")),
+            BookModel.objects.aggregate(*pipeline),
+        )
+    )
+
+
 class Query(graphene.ObjectType):
     class Meta:
         description = "Root Query"
@@ -249,3 +273,11 @@ class Query(graphene.ObjectType):
 
     def resolve_all_books(self, info, **kwargs):
         return common_resolver(model=BookModel, document=Book, **kwargs)
+
+    random_books = MongoengineConnectionField(
+        Book,
+        order_by=graphene.String(),
+    )
+
+    def resolve_random_books(self, info, **kwargs):
+        return random_resolver(model=BookModel, document=Book, **kwargs)
