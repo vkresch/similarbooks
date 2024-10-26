@@ -7,7 +7,6 @@ py_library(
         requirement("graphql-server"),
         requirement("flask_mongoengine"),
         requirement("flask_wtf"),
-        requirement("flask_simple_captcha"),
         requirement("flask_caching"),
         requirement("email_validator"),
         requirement("passlib"),

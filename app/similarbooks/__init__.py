@@ -15,12 +15,29 @@ from flask import (
 from graphql_server.flask import GraphQLView
 from collections import UserDict
 from flask_mongoengine import MongoEngine
-from flask_simple_captcha import CAPTCHA
 from spiders.bookspider.bookspider.schema import Book, Query
 
 db = MongoEngine()
 
-simple_captcha = CAPTCHA(config=Config.CAPTCHA_CONFIG)
+
+def token_required(f):
+    @wraps(f)
+    def decorated_function(*args, **kwargs):
+        token = request.headers.get("X-RapidAPI-Proxy-Secret")
+        if not token:
+            return (
+                jsonify(
+                    {
+                        "message": "API key is missing! Please register one for findsimilarbooks.com on RapidAPI!"
+                    }
+                ),
+                403,
+            )
+        if token != Config.SECRET_KEY:
+            return jsonify({"message": "Invalid API key!"}), 403
+        return f(*args, **kwargs)
+
+    return decorated_function
 
 
 def graphql_view():
@@ -33,7 +50,7 @@ def graphql_view():
     view = GraphQLView.as_view(
         "graphql", schema=schema, graphiql=DEBUG, context=UserDict()
     )
-    return view
+    return token_required(view) if not DEBUG else view
 
 
 # Custom filter to extract year from date string
@@ -59,7 +76,6 @@ def create_app(config_class=Config):
         cache.clear()
 
     db.init_app(app)
-    simple_captcha.init_app(app)
 
     app.add_url_rule(
         "/graphql",
