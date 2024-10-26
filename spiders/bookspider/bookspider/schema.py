@@ -194,8 +194,6 @@ ignore_dict = {
     "image_url": 0,
     "server": 0,
     "date": 0,
-    "bmu_col": 0,
-    "bmu_row": 0,
     "author_image_url": 0,
 }
 
@@ -303,9 +301,14 @@ class Query(graphene.ObjectType):
     )
 
     def resolve_all_books(self, info, **kwargs):
-        rapid_api_request = info.context["request"].headers.get("X-Rapidapi-Request-Id", None)
+        rapid_api_request = info.context["request"].headers.get(
+            "X-Rapidapi-Request-Id", None
+        )
         return common_resolver(
-            model=BookModel, document=Book, rapid_api_request=rapid_api_request, **kwargs
+            model=BookModel,
+            document=Book,
+            rapid_api_request=rapid_api_request,
+            **kwargs,
         )
 
     random_books = MongoengineConnectionField(
@@ -314,7 +317,12 @@ class Query(graphene.ObjectType):
     )
 
     def resolve_random_books(self, info, **kwargs):
-        rapid_api_request = info.context["request"].headers.get("X-Rapidapi-Request-Id", None)
+        rapid_api_request = info.context["request"].headers.get(
+            "X-Rapidapi-Request-Id", None
+        )
         return random_resolver(
-            model=BookModel, document=Book, rapid_api_request=rapid_api_request, **kwargs
+            model=BookModel,
+            document=Book,
+            rapid_api_request=rapid_api_request,
+            **kwargs,
         )
