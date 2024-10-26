@@ -16,6 +16,7 @@ IGNORE_FIELDS_FOR_FILTER = [
     "page",
     "order_by",
     "filters",
+    "rapid_api_request",
 ]
 
 BOOK_QUERY = """
