@@ -175,11 +175,37 @@ def update_filter(filters, kwargs):
     return filters
 
 
+ignore_dict = {
+    "_id": 0,
+    "amazon_link": 0,
+    "kindle_link": 0,
+    "audible_link": 0,
+    "barnes_and_noble_link": 0,
+    "abe_books_link": 0,
+    "kobo_link": 0,
+    "google_play_link": 0,
+    "alibris_link": 0,
+    "indigo_link": 0,
+    "better_world_books_link": 0,
+    "indie_bounds_link": 0,
+    "thrift_books_link": 0,
+    "spider": 0,
+    "project": 0,
+    "image_url": 0,
+    "server": 0,
+    "date": 0,
+    "bmu_col": 0,
+    "bmu_row": 0,
+    "author_image_url": 0,
+}
+
+
 def common_resolver(**kwargs):
     per_page = min(kwargs.get("per_page", QUERY_LIMIT), QUERY_LIMIT)
     offset = (kwargs.get("page", 1) - 1) * per_page
     order_by = kwargs.get("order_by", None)
     filters = update_filter(kwargs.get("filters", {}), kwargs)
+    rapid_api_key = kwargs.get("rapid_api_key", None)
 
     # Check if the `summary__length_gte` filter is provided
     summary_length_filter = filters.pop("summary__length_gte", None)
@@ -222,7 +248,9 @@ def common_resolver(**kwargs):
         [
             # {"$skip": offset},  # Pagination: skip first `offset` documents
             {"$limit": per_page},  # Limit the number of documents returned
-            {"$project": {"_id": 0}},  # Don't return the `_id` field
+            {
+                "$project": {"_id": 0} if rapid_api_key is None else ignore_dict
+            },  # Don't return the `_id` field
         ]
     )
 
@@ -236,6 +264,7 @@ def common_resolver(**kwargs):
 
 def random_resolver(**kwargs):
     order_by = kwargs.get("order_by", None)
+    rapid_api_key = kwargs.get("rapid_api_key", None)
 
     pipeline = [
         {"$sample": {"size": 10}},
@@ -246,7 +275,9 @@ def random_resolver(**kwargs):
 
     pipeline.extend(
         [
-            {"$project": {"_id": 0}},  # Don't return the `_id` field
+            {
+                "$project": {"_id": 0} if rapid_api_key is None else ignore_dict
+            },  # Don't return the `_id` field
         ]
     )
 
@@ -272,7 +303,10 @@ class Query(graphene.ObjectType):
     )
 
     def resolve_all_books(self, info, **kwargs):
-        return common_resolver(model=BookModel, document=Book, **kwargs)
+        rapid_api_key = info.context["request"].headers.get("X-RapidAPI-Key", None)
+        return common_resolver(
+            model=BookModel, document=Book, rapid_api_key=rapid_api_key, **kwargs
+        )
 
     random_books = MongoengineConnectionField(
         Book,
@@ -280,4 +314,7 @@ class Query(graphene.ObjectType):
     )
 
     def resolve_random_books(self, info, **kwargs):
-        return random_resolver(model=BookModel, document=Book, **kwargs)
+        rapid_api_key = info.context["request"].headers.get("X-RapidAPI-Key", None)
+        return random_resolver(
+            model=BookModel, document=Book, rapid_api_key=rapid_api_key, **kwargs
+        )
