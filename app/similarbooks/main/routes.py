@@ -22,13 +22,13 @@ from similarbooks.main.constants import (
     BOOK_QUERY,
     RANDOM_BOOK_QUERY,
     DETAILED_BOOK_QUERY,
+    SIMILAR_BOOK_QUERY,
     MIN_SUMMARY_LENGTH,
 )
 from similarbooks.config import Config
 from similarbooks.main.utils import (
     query_data,
     extract_and_add_params,
-    get_similar_books,
 )
 
 VERSION = f"v{Config.VERSION_MAJOR}.{Config.VERSION_MINOR}.{Config.VERSION_PATCH}"
@@ -106,14 +106,16 @@ def detailed_book(sha):
     if len(book) > 0:
         book = book[0]  # Unlist the book
         image_file = url_for("static", filename=f"covers/{sha}.png")
-        matched_list = get_similar_books(
-            [book["node"].get("bmu_col"), book["node"].get("bmu_row")], sha
-        )
-        similar_books = query_data(
-            BOOK_QUERY,
-            {
-                "sha_in": matched_list,
-            },
+        similar_books = (
+            query_data(
+                SIMILAR_BOOK_QUERY,
+                {
+                    "bmu_col": book["node"].get("bmu_col"),
+                    "bmu_row": book["node"].get("bmu_row"),
+                },
+            )
+            if book["node"].get("bmu_col") is not None
+            else []
         )
         unique_similar_books = extract_distinct_books(
             similar_books, ignore_title=book["node"].get("title")

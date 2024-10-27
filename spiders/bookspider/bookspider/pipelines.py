@@ -115,21 +115,28 @@ class BookspiderMongoDBPipeline:
         spider.logger.info("Spider finished!")
 
     def process_item(self, item, spider):
-        image_url = item.get("image_url")
-        if image_url:
-            download_book_cover(spider, item["sha"], image_url)
         existing_item = Book.objects(book_id=item["book_id"]).first()
         if existing_item:
             # Do not save again if it exists already
             spider.logger.info(
                 f"Book with id {item['book_id']} already saved into the database!"
             )
+            image_url = existing_item["image_url"]
+            if image_url:
+                download_book_cover(spider, existing_item["sha"], image_url)
+            ignore_update = ["sha"]
             if hasattr(spider, "start_urls"):
                 for key, value in item.items():
+                    if key in ignore_update:
+                        continue
+
                     setattr(existing_item, key, value)
                 spider.logger.info(f"Book with id {item['book_id']} overridden!")
                 existing_item.save()
         else:
+            image_url = item.get("image_url")
+            if image_url:
+                download_book_cover(spider, item["sha"], image_url)
             book = Book(**dict(item))
             book.save()
         return item

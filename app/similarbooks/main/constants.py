@@ -65,3 +65,17 @@ DETAILED_BOOK_QUERY = """
     }}
   }}
 }}""".strip()
+
+SIMILAR_BOOK_QUERY = """
+{{
+  all_books (per_page: 50, order_by: "-ratings_count",  filters: {0} ) {{
+    edges {{
+      node {{
+        sha,
+        title,
+        author,
+        ratings_count,
+      }}
+    }}
+  }}
+}}""".strip()
