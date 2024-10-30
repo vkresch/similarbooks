@@ -106,6 +106,7 @@ def fetch_data():
     response = requests.post(
         url=GRAPHQL_ENDPOINT,
         json={"query": query},
+        headers={"X-RapidAPI-Proxy-Secret": Config.SECRET_KEY},
     ).json()
     return response["data"]["all_books"]["edges"]
 
