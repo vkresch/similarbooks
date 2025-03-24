@@ -1,10 +1,13 @@
 import os
 import logging
 import time
+from datetime import datetime
 from pathlib import Path
 from pymongo import MongoClient
 
 PARENT_DIR = Path(__file__).resolve().parent
+
+datetime_now = datetime.now().strftime("%Y-%m-%d")
 
 logging.basicConfig(
     format="%(asctime)s %(levelname)-8s %(message)s",
@@ -20,23 +23,23 @@ sitemap_dir = PARENT_DIR / Path(
 # Static URLs to be included in the first sitemap
 static_urls = [
     {
-        "loc": "https://www.findsimilarbooks.com/",
-        "lastmod": "2024-06-29T14:43:21+00:00",
+        "loc": "https://findsimilarbooks.com/",
+        "lastmod": datetime_now,
         "priority": "1.00",
     },
     {
-        "loc": "https://www.findsimilarbooks.com/about",
-        "lastmod": "2024-06-29T14:43:21+00:00",
+        "loc": "https://findsimilarbooks.com/about",
+        "lastmod": datetime_now,
         "priority": "0.80",
     },
     {
-        "loc": "https://www.findsimilarbooks.com/legal",
-        "lastmod": "2024-06-29T14:43:21+00:00",
+        "loc": "https://findsimilarbooks.com/legal",
+        "lastmod": datetime_now,
         "priority": "0.80",
     },
     {
-        "loc": "https://www.findsimilarbooks.com/impressum",
-        "lastmod": "2024-06-29T14:43:21+00:00",
+        "loc": "https://findsimilarbooks.com/impressum",
+        "lastmod": datetime_now,
         "priority": "0.80",
     },
 ]
@@ -80,8 +83,8 @@ if __name__ == "__main__":
         sha = item["sha"]  # Extract the book id (sha)
         book_url = {
             "loc": f"{base_url}{sha}",
-            "lastmod": "2024-09-30",  # Adjust last modified date
-            "priority": "0.70",
+            "lastmod": datetime_now,  # Adjust last modified date
+            "priority": "0.80",
         }
         urls.append(book_url)
 
@@ -96,7 +99,7 @@ if __name__ == "__main__":
         write_sitemap(file_num, urls)
 
     # Generate the sitemap index file
-    sitemap_index_path = sitemap_dir / Path(f"sitemap_index.xml")
+    sitemap_index_path = sitemap_dir / Path(f"sitemap.xml")
     with open(sitemap_index_path, "w") as f:
         f.write('<?xml version="1.0" encoding="UTF-8"?>\n')
         f.write('<sitemapindex xmlns="http://www.sitemaps.org/schemas/sitemap/0.9">\n')
@@ -106,7 +109,7 @@ if __name__ == "__main__":
             f.write(
                 f"    <loc>https://findsimilarbooks.com/sitemap_books_{n}.xml</loc>\n"
             )
-            f.write(f"    <lastmod>2024-09-30</lastmod>\n")
+            f.write(f"    <lastmod>{datetime_now}</lastmod>\n")
             f.write(f"  </sitemap>\n")
 
         f.write("</sitemapindex>\n")

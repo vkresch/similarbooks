@@ -92,13 +92,9 @@ def create_app(config_class=Config):
         return send_from_directory(app.static_folder, "robots.txt")
 
     @app.route("/sitemap.xml")
-    def serve_sitemap():
-        return redirect("/sitemap_index.xml", code=301)
-
-    @app.route("/sitemap_index.xml")
-    def sitemap_index():
-        # Serve the sitemap_index.xml file from the SITEMAP_DIR
-        return send_from_directory(app.static_folder, "sitemap_index.xml")
+    def serve_sitemap_xml():
+        # Serve the sitemap.xml file from the SITEMAP_DIR
+        return send_from_directory(app.static_folder, "sitemap.xml")
 
     @app.route("/<filename>")
     def serve_sitemaps(filename):

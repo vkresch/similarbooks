@@ -24,7 +24,7 @@ logging.basicConfig(
 
 ATTRIBUTE_QUERY = """
 {{
-  all_books (filters: {0}) {{
+  all_books (per_page: 25, filters: {0}) {{
     edges {{
       node {{
         sha,

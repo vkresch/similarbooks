@@ -12,4 +12,4 @@ https://www.youtube.com/watch?v=GFEZkgg_UNg
 https://www.kaggle.com/code/blind0ne/similarbooks-brain-inspired-clustering-and-querying
 
 ## GoodReads Cleared Ranges Crawled
-1_000_000 - 1_400_000
+1 - 2_400_000
